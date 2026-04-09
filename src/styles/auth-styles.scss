@@ -1,0 +1,404 @@
+// 认证页面公共样式
+
+// 容器布局
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  background: #1E253D;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('@/assets/backImg.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 0;
+}
+
+.content-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  max-width: none;
+}
+
+// 左侧区域样式
+.left-area {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.company-icon {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 124px;
+  height: 35px;
+  z-index: 2;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.company-name {
+  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 22px;
+  letter-spacing: 0.35em;
+  color: #1E253D;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.center-image {
+  width: 100%;
+  max-width: 640px;
+  max-height: 414px;
+  z-index: 1;
+  
+  img {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.slogan {
+  margin-top: 20px;
+  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: 0.35em;
+  text-align: center;
+  color: #1E253D;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+// 右侧区域样式
+.right-area {
+  flex: 0 0 37.5%;
+  min-width: 380px;
+  background: rgba(255, 255, 255, 0.5);
+  border-left: 1px solid #FFFFFF;
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+// 表单样式
+.form-container {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.field-label {
+  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+  color: #1E253D;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+// 输入框样式
+.auth-input {
+  width: 280px;
+  height: 32px;
+  
+  >>> .el-input__wrapper {
+    border-radius: 2px;
+    padding: 4px 12px;
+    background-color: #FFFFFF;
+    box-shadow: none;
+    border: none;
+    height: 32px;
+    min-height: 32px;
+  }
+  
+  >>> .el-input__inner {
+    font-size: 14px;
+    height: 32px;
+    line-height: 22px;
+  }
+  
+  >>> .el-input__inner::placeholder {
+    color: #9AA2B0;
+  }
+}
+
+// 验证码输入框样式
+.code-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.code-row .el-input {
+  height: 32px;
+}
+
+.code-row .code-sender-btn {
+  height: 32px;
+}
+
+.code-input {
+  width: 158px;
+  height: 32px;
+  
+  >>> .el-input__wrapper {
+    border-radius: 2px;
+    padding: 4px 12px;
+    background-color: #FFFFFF;
+    box-shadow: none;
+    border: none;
+    height: 32px;
+    min-height: 32px;
+  }
+  
+  >>> .el-input__inner {
+    font-size: 14px;
+    height: 32px;
+    line-height: 22px;
+  }
+}
+
+// 按钮样式
+.submit-btn {
+  width: 100%;
+  height: 40px;
+  border-radius: 2px;
+  background-color: #13B63A;
+  border: none;
+  font-size: 14px;
+  color: white;
+  margin-top: 16px;
+  cursor: pointer;
+  
+  &:hover:not(:disabled) {
+    background-color: #0e9a2f;
+  }
+  
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+}
+
+.get-code-btn, .code-sender-btn {
+  width: 96px;
+  height: 32px;
+  border-radius: 2px;
+  background-color: transparent;
+  border: 1px solid #13B63A;
+  font-size: 14px;
+  color: #13B63A;
+  cursor: pointer;
+  
+  &:hover:not(:disabled) {
+    background-color: rgba(19, 182, 58, 0.1);
+  }
+  
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+}
+
+// 表单头部样式
+.form-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 32px;
+  min-height: 32px;
+}
+
+.back-icon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.form-title {
+  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 32px;
+  color: #060606;
+  margin: 0;
+  text-align: center;
+}
+
+// 登录表单特有样式
+.title-container {
+  position: relative;
+  margin-bottom: 32px;
+  width: 180px;
+  margin-left: auto;
+  margin-right: auto;
+  
+}
+
+.welcome-title {
+  position: relative;
+  width: 111px;
+  height: 32px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Helvetica Neue", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: between;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 auto 8px;
+  
+}
+
+.subtitle {
+  position: relative;
+  width: 112px;
+  height: 22px;
+  transform: rotate(0deg);
+  opacity: 1;
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Helvetica Neue", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: 0%;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 auto 32px;
+  color: #717782;
+  
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: -16px;
+  margin-bottom: 24px;
+  
+  .el-link {
+    font-size: 12px;
+    color: #13B63A;
+  }
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 12px;
+  
+  .el-link {
+    font-size: 14px;
+    color: #13B63A;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+  
+  .left-area {
+    height: 40vh;
+    min-height: 300px;
+  }
+  
+  .right-area {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+    border-left: none;
+    border-top: 1px solid #FFFFFF;
+  }
+  
+  .company-icon {
+    top: 10px;
+    left: 10px;
+    width: 100px;
+    height: 28px;
+  }
+  
+  .company-name {
+    top: 45px;
+    left: 10px;
+    font-size: 10px;
+  }
+  
+  .slogan {
+    font-size: 14px;
+  }
+  
+  .form-title {
+    font-size: 20px;
+  }
+  
+  .welcome-title {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .right-area {
+    padding: 20px 15px;
+  }
+  
+  .form-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-height: 600px) {
+  .left-area {
+    padding: 10px;
+  }
+  
+  .center-image {
+    max-height: 250px;
+  }
+  
+  .right-area {
+    padding: 20px;
+  }
+}
