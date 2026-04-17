@@ -279,7 +279,7 @@ export default {
       this.showPrintDialog = true
     },
     handleBatchPrint() {
-      console.log('批量打印前的选中项：', this.selectedItems);
+
       if (this.selectedItems.length === 0) {
         this.$message.warning('请选择要打印的项');
         return;
@@ -287,8 +287,7 @@ export default {
       this.showPrintDialog = true;
     },
     startPrint() {
-      console.log('开始打印，尺寸：', this.printSize);
-      console.log('打印项：', this.selectedItems);
+
       
       // 显示加载状态
       this.isPrinting = true;
@@ -320,23 +319,18 @@ export default {
     },
     handleCheckboxChange(selection, row) {
       // 更新选中项
-      console.log('选择事件参数：', selection, row);
       this.selectedItems = selection.map(item => item.id);
       this.selectedCount = this.selectedItems.length;
-      console.log('选中项：', this.selectedItems);
     },
     handleSelectionChange(selection) {
       // 处理表格选择变化
-      console.log('选择变化：', selection);
       this.selectedItems = selection.map(item => item.id);
       this.selectedCount = this.selectedItems.length;
-      console.log('选中项：', this.selectedItems);
     },
     handleCurrentChange(val) {
       // 处理页码变化
       this.currentPage = val;
       // 这里可以添加分页请求逻辑
-      console.log('当前页码:', val);
     },
     handleQuery() {
       // 查询逻辑：根据产生日期、入库日期和危险废物类型过滤数据

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="personal-center">
     <div class="personal-content">
       <div class="user-info-header">
@@ -24,10 +24,10 @@
           <div class="system-authorization">
           <span>全国系统授权信息：</span>
           <span class="fill-status">
-            {{ authorizationInfo ? '已填写' : '未填写' }}
+            {{ authorizationInfo || '未填写' }}
           </span>
           <button class="auth-btn" @click="handleAuthEdit">
-            填写
+            {{ authorizationInfo ? '修改' : '填写' }}
           </button>
         </div>
         
@@ -47,7 +47,14 @@
               />
             </div>
             <div class="auth-dialog-footer">
-              <button class="auth-dialog-confirm" @click="handleAuthConfirm">确定</button>
+              <button
+                type="button"
+                class="auth-dialog-confirm"
+                :disabled="isSubmitting"
+                @click="handleAuthConfirm"
+              >
+                确定
+              </button>
             </div>
           </div>
         </div>
@@ -155,7 +162,7 @@
                 <label>姓名</label>
                 <input 
                   type="text" 
-                  v-model="newAgent.name"
+                  v-model="newAgent.operatorName"
                   placeholder="请输入"
                   class="add-agent-input"
                 />
@@ -163,12 +170,12 @@
               <div class="form-item">
                 <label>经办人类型</label>
                 <select 
-                  v-model="newAgent.type"
+                  v-model="newAgent.operatorType"
                   class="add-agent-select"
                 >
                   <option value="">请选择</option>
-                  <option v-for="type in agentTypes" :key="type" :value="type">
-                    {{ type }}
+                  <option v-for="type in agentTypes" :key="type.value" :value="type.value">
+                    {{ type.label }}
                   </option>
                 </select>
               </div>
@@ -206,8 +213,17 @@
             <div class="add-iot-dialog-body">
               <div class="form-item">
                 <label>统一设备编号</label>
-                <select 
+                <input 
+                  type="text" 
                   v-model="newIotDevice.code"
+                  placeholder="请输入"
+                  class="add-iot-input"
+                />
+              </div>
+              <div class="form-item">
+                <label>物联网设备类型</label>
+                <select 
+                  v-model="newIotDevice.type"
                   class="add-iot-input"
                 >
                   <option value="">请选择</option>
@@ -215,15 +231,6 @@
                     {{ type }}
                   </option>
                 </select>
-              </div>
-              <div class="form-item">
-                <label>物联网设备类型</label>
-                <input 
-                  type="text" 
-                  v-model="newIotDevice.type"
-                  placeholder="请输入"
-                  class="add-iot-input"
-                />
               </div>
               <div class="form-item">
                 <label>状态</label>
@@ -256,7 +263,7 @@
                   <label>姓名</label>
                   <input 
                     type="text" 
-                    v-model="editItem.name"
+                    v-model="editItem.operatorName"
                     placeholder="请输入"
                     class="edit-input"
                   />
@@ -264,12 +271,12 @@
                 <div class="form-item">
                   <label>经办人类型</label>
                   <select 
-                    v-model="editItem.type"
+                    v-model="editItem.operatorType"
                     class="edit-input"
                   >
                     <option value="">请选择</option>
-                    <option v-for="type in agentTypes" :key="type" :value="type">
-                      {{ type }}
+                    <option v-for="type in agentTypes" :key="type.value" :value="type.value">
+                      {{ type.label }}
                     </option>
                   </select>
                 </div>
@@ -304,7 +311,7 @@
                       <input type="checkbox" v-model="editItem.enabled">
                       <span class="switch-slider"></span>
                     </label>
-                    <span>{{ editItem.enabled ? '开启' : '关闭' }}</span>
+                    <span>{{ editItem.enabled ? '开启' : '关闭' }}</span>   
                   </div>
                 </div>
               </div>
@@ -370,42 +377,42 @@
               </div>
               <div class="info-item">
                 <label>法定代表人：</label>
-                <span>奉辉</span>
+                <span>{{ legalRepresentative || '未获取' }}</span>
               </div>
               <div class="info-item">
                 <label>经营状态：</label>
-                <span><span class="status-enabled">启用</span></span>
+                <span><span class="status-enabled">{{ businessStatus || '启用' }}</span></span>
               </div>
               <div class="info-item">
                 <label>所属行业：</label>
-                <span>科技推广与应用服务业</span>
+                <span>{{ industry || '未获取' }}</span>
               </div>
               <div class="info-item">
                 <label>注册地址：</label>
-                <span>佛山市南海区狮山镇狮城路11号腾大时代广场B座1207号</span>
+                <span>{{ registeredAddress || '未获取' }}</span>
               </div>
             </div>
             <!-- 右列 -->
             <div class="info-column">
               <div class="info-item">
                 <label>统一社会信用代码：</label>
-                <span>91440605MA55UMH452</span>
+                <span>{{ unifiedSocialCreditCode || '未获取' }}</span>
               </div>
               <div class="info-item">
                 <label>企业类型：</label>
-                <span>产生单位</span>
+                <span>{{ companyType || '产生单位' }}</span>
               </div>
               <div class="info-item">
                 <label>行政区划：</label>
-                <span>广东省佛山市南海区</span>
+                <span>{{ administrativeDivision || '未获取' }}</span>
               </div>
               <div class="info-item">
                 <label>企业联系人：</label>
-                <span>奉辉</span>
+                <span>{{ companyContact || '未获取' }}</span>
               </div>
               <div class="info-item">
                 <label>企业电话：</label>
-                <span>18138912618</span>
+                <span>{{ companyPhone || '未获取' }}</span>
               </div>
             </div>
           </div>
@@ -470,14 +477,14 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in getCurrentPageData(wasteInfoData)" :key="item.id">
-                    <td>{{ item.wasteCode }}</td>
-                    <td>{{ item.wasteName }}</td>
-                    <td>{{ item.wasteCategory }}</td>
-                    <td>{{ item.wasteCodeNum }}</td>
-                    <td>{{ item.wasteForm }}</td>
-                    <td>{{ item.mainComponent }}</td>
-                    <td>{{ item.dangerProperty }}</td>
-                    <td>{{ item.containerType }}</td>
+                    <td>{{ item.cfxxtybh }}</td>
+                    <td>{{ item.fwmc }}</td>
+                    <td>{{ item.fwlx }}</td>
+                    <td>{{ item.fwdm }}</td>
+                    <td>{{ item.fwxt }}</td>
+                    <td>{{ item.zycf }}</td>
+                    <td>{{ item.wxtx }}</td>
+                    <td>{{ item.rqlx }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -535,13 +542,13 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in getCurrentPageData(storageData)" :key="item.id">
-                    <td>{{ item.storageCode }}</td>
-                    <td>{{ item.facilityName }}</td>
-                    <td>{{ item.facilityCode }}</td>
-                    <td>{{ item.facilityType }}</td>
-                    <td>{{ item.personInCharge }}</td>
-                    <td>{{ item.contactPhone }}</td>
-                    <td>{{ item.facilitySize }}</td>
+                    <td>{{ item.zcsstybh }}</td>
+                    <td>{{ item.ssmc }}</td>
+                    <td>{{ item.ssbm }}</td>
+                    <td>{{ item.sslx }}</td>
+                    <td>{{ item.fzr }}</td>
+                    <td>{{ item.lxdh }}</td>
+                    <td>{{ item.ssdx }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -599,13 +606,13 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in getCurrentPageData(planProduceData)" :key="item.id">
-                    <td>{{ item.wasteFacilityCode }}</td>
-                    <td>{{ item.facilityName }}</td>
-                    <td>{{ item.facilityCode }}</td>
-                    <td>{{ item.wasteCode }}</td>
-                    <td>{{ item.wasteName }}</td>
-                    <td>{{ item.wasteCodeNum }}</td>
-                    <td>{{ item.estimatedAmount }}</td>
+                    <td>{{ item.cfsstybh }}</td>
+                    <td>{{ item.ssmc }}</td>
+                    <td>{{ item.ssbm }}</td>
+                    <td>{{ item.cfxxtybh }}</td>
+                    <td>{{ item.fwmc }}</td>
+                    <td>{{ item.fwdm }}</td>
+                    <td>{{ item.yjcsl }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -663,13 +670,13 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in getCurrentPageData(planDisposeData)" :key="item.id">
-                    <td>{{ item.disposeFacilityCode }}</td>
-                    <td>{{ item.facilityName }}</td>
-                    <td>{{ item.facilityCode }}</td>
-                    <td>{{ item.wasteCode }}</td>
-                    <td>{{ item.wasteName }}</td>
-                    <td>{{ item.wasteCodeNum }}</td>
-                    <td>{{ item.disposeMethod }}</td>
+                    <td>{{ item.zxlyczsstybh }}</td>
+                    <td>{{ item.ssmc }}</td>
+                    <td>{{ item.ssbm }}</td>
+                    <td>{{ item.cfxxtybh }}</td>
+                    <td>{{ item.fwmc }}</td>
+                    <td>{{ item.fwdm }}</td>
+                    <td>{{ item.lyczfsValue }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -725,11 +732,11 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in getCurrentPageData(businessFacilityData)" :key="item.id">
-                    <td>{{ item.facilityCode }}</td>
-                    <td>{{ item.facilityName }}</td>
-                    <td>{{ item.facilityCodeNum }}</td>
-                    <td><span :class="['status-dot', item.status]"></span>{{ item.status === 'enabled' ? '启用' : '禁用' }}</td>
-                    <td>{{ item.disposeMethod }}</td>
+                    <td>{{ item.zxlyczsstybh }}</td>
+                    <td>{{ item.ssmc }}</td>
+                    <td>{{ item.ssbm }}</td>
+                    <td><span :class="['status-dot', item.sszt === 1 ? 'enabled' : 'disabled']"></span>{{ item.sszt === 1 ? '启用' : '禁用' }}</td>
+                    <td>{{ item.lyczfsValue }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -785,8 +792,8 @@
               </thead>
               <tbody>
                 <tr v-for="item in agentData" :key="item.id">
-                  <td>{{ item.name }}</td>
-                  <td>{{ item.type }}</td>
+                  <td>{{ item.operatorName }}</td>
+                  <td>{{ item.operatorTypeValue }}</td>
                   <td class="agent-actions">
                     <button class="delete-btn" @click="handleDeleteClick(item.id)">删除</button>
                     <button class="edit-btn" @click="handleEditClick('agent', item)">修改</button>
@@ -812,7 +819,7 @@
               <tbody>
                 <tr v-for="item in iotData" :key="item.id">
                   <td>{{ item.type }}</td>
-                  <td>{{ item.code }}</td>
+                  <td>{{ item.facilityNo || '-' }}</td>
                   <td class="iot-actions">
                     <button class="delete-btn" @click="handleIotDeleteClick(item.id)">删除</button>
                     <button class="edit-btn" @click="handleEditClick('iot', item)">修改</button>
@@ -829,15 +836,15 @@
         </div>
       </div>
     </div>
-  </div>
+      </div>
 </template>
 
 <script>
 import { 
   myApi, 
-  settingApi, 
-  dictionaryApi 
+  settingApi
 } from '@/api/index'
+import StorageUtil from '@/utils/storage'
 import { Message } from 'element-ui'
 
 export default {
@@ -847,8 +854,10 @@ export default {
       currentTab: 'basic', // basic, unit, business, agent, iot
       authorizationInfo: '', // 全国系统授权信息文本
       tokenId: null, // 存储 token 的主键 ID，用于更新判断
+      officeId: '',
       showAuthDialog: false,
       authDialogValue: '',
+      isSubmitting: false, // 防重复提交状态
       
       companyName: '',
       isCertified: false,
@@ -862,15 +871,28 @@ export default {
       currentBusinessNav: 'waste-info',
       currentPage: 1,
       pageSize: 11,
+      totalCount: 0, // 新增：保存当前列表的总条数
       goToPage: '',
       
       // 用户信息
-      userName: '蒋',
-      userCode: '87986555',
+      userName: '',
+      userCode: '',
       loginPassword: '',
       registeredPhone: '',
       confirmPassword: '',
       avatar: '',
+      
+      // 单位信息
+      companyName: '',
+      legalRepresentative: '',
+      businessStatus: '',
+      industry: '',
+      registeredAddress: '',
+      unifiedSocialCreditCode: '',
+      companyType: '',
+      administrativeDivision: '',
+      companyContact: '',
+      companyPhone: '',
       
       // 列表数据
       agentData: [], // 经办人列表
@@ -885,11 +907,17 @@ export default {
       showModifyDialog: false,
       modifyType: '',
       showAddAgentDialog: false,
-      newAgent: { name: '', type: '' },
-      agentTypes: ['入库部门经办人', '出库部门经办人', '处置部门经办人', '运输部门经办人', '贮存部门经办人'],
+      newAgent: { operatorName: '', operatorType: '' },
+      agentTypes: [
+        { value: 'ATTEND', label: '出库部门经办人' },
+        { value: 'TRANSPORT', label: '运送部门经办人' },
+        { value: 'STORAGE', label: '贮存部门经办人' },
+        { value: 'DISPOSAL', label: '利用/处置部门经办人' },
+        { value: 'PRODUCE', label: '产生部门经办人' }
+      ],
       
       showDeleteDialog: false,
-      pendingDeleteId: null, // 统一删除 ID
+      pendingDeleteId: null, 
       
       showAddIotDialog: false,
       newIotDevice: { code: '', type: '', enabled: false },
@@ -905,138 +933,623 @@ export default {
   },
   computed: {
     isInfoComplete() {
-      return this.authorizationInfo && this.isCertified
+      return this.authorizationInfo
     }
   },
   methods: {
-    // 初始化页面数据
+    pickFirstNonEmpty(...values) {
+      for (const value of values) {
+        if (value === null || value === undefined) continue
+        const text = String(value).trim()
+        if (text.length > 0) return text
+      }
+      return ''
+    },
+
+    /** tokenPage 列表里全国系统授权串可能出现的字段名 */
+    pickNationalTokenFromRecord(info) {
+      if (!info || typeof info !== 'object') {
+        return ''
+      }
+      const result = this.pickFirstNonEmpty(
+        info.token,
+        info.accessToken,
+        info.nationalToken,
+        info.sysToken,
+        info.authToken,
+        info.tokenValue,
+        info.tokenStr,
+        info.value
+      )
+      return result
+    },
+
+    /** 兼容不同分页返回结构 */
+    extractTokenPageRecords(res) {
+      const d = res?.result || res?.data
+      if (!d) {
+        return []
+      }
+      if (Array.isArray(d.records)) {
+        return d.records
+      }
+      if (Array.isArray(d.list)) {
+        return d.list
+      }
+      if (Array.isArray(d.rows)) {
+        return d.rows
+      }
+      if (Array.isArray(d.content)) {
+        return d.content
+      }
+      if (Array.isArray(d.data)) {
+        return d.data
+      }
+      return []
+    },
+    // === 分页补充方法 开始 ===
+    getTotalItems() {
+      return this.totalCount || 0;
+    },
+    getTotalPages() {
+      return Math.ceil(this.totalCount / this.pageSize) || 1;
+    },
+    getCurrentPageData(dataArray) {
+      // 当前页数据已经由后端分页，直接返回即可
+      return dataArray; 
+    },
+    handleGoToPage() {
+      const page = parseInt(this.goToPage);
+      if (!isNaN(page) && page > 0 && page <= this.getTotalPages()) {
+        this.handlePageClick(page);
+        this.goToPage = ''; // 前往后清空输入框
+      } else {
+        Message.warning('请输入有效的页码');
+      }
+    },
+    // === 分页补充方法 结束 ===
+
+    // 初始化页面数据（先同步单位 officeId，再查 tokenPage，避免 id 条件错误导致一直「未填写」）
     async initData() {
-      await this.getAuthTokenStatus()
+      this.loadUserProfile()
       await this.getOfficeStatus()
+      await this.getAuthTokenStatus()
       this.refreshList()
     },
 
-    // 1. 获取全国系统授权信息状态
+    loadUserProfile() {
+      let user = null
+      try {
+        const userRaw = StorageUtil.getItemSync('user')
+        user = userRaw ? JSON.parse(userRaw) : null
+      } catch (e) {
+        user = null
+      }
+      const token = StorageUtil.getItemSync('token') || window.tokenCache || ''
+      const jwt = this.parseJwtPayload(token)
+      const userData = user?.data || {}
+      const userInfo = user?.userInfo || user?.user || {}
+
+      this.userName = this.pickFirstNonEmpty(
+        user?.userName,
+        userData?.userName,
+        userInfo?.userName,
+        user?.username,
+        userData?.username,
+        userInfo?.username,
+        user?.account,
+        userData?.account,
+        userInfo?.account,
+        user?.loginName,
+        userData?.loginName,
+        userInfo?.loginName,
+        jwt?.userName,
+        jwt?.username,
+        jwt?.account,
+        jwt?.preferred_username,
+        jwt?.sub,
+        user?.createdName,
+        userData?.createdName,
+        userInfo?.createdName,
+        user?.name
+      ) || '未获取到用户名'
+
+      this.userCode = this.pickFirstNonEmpty(
+        user?.mobileNo,
+        userData?.mobileNo,
+        userInfo?.mobileNo,
+        jwt?.mobileNo,
+        user?.updatedBy,
+        userData?.updatedBy,
+        userInfo?.updatedBy,
+        user?.jobNo,
+        userData?.jobNo,
+        userInfo?.jobNo,
+        user?.workNo,
+        userData?.workNo,
+        userInfo?.workNo
+      ) || '未获取到工号'
+
+      this.officeId = this.pickFirstNonEmpty(
+        user?.officeId,
+        userData?.officeId,
+        userInfo?.officeId,
+        user?.officeCode,
+        userData?.officeCode,
+        userInfo?.officeCode,
+        jwt?.officeId,
+        jwt?.officeCode,
+        jwt?.orgId
+      ) || ''
+
+      // 全国系统授权信息：仅展示 /sys/token/page 返回的业务 token（与登录鉴权 JWT 不是同一种）
+      this.authorizationInfo = ''
+
+      this.loginPassword = user?.password || userData?.password || userInfo?.password || '已设置'
+
+      // 设置注册手机号
+      this.registeredPhone = this.pickFirstNonEmpty(
+        user?.phone,
+        userData?.phone,
+        userInfo?.phone,
+        user?.mobile,
+        userData?.mobile,
+        userInfo?.mobile,
+        user?.mobilePhone,
+        userData?.mobilePhone,
+        userInfo?.mobilePhone,
+        user?.phoneNumber,
+        userData?.phoneNumber,
+        userInfo?.phoneNumber,
+        jwt?.phone,
+        jwt?.mobile,
+        jwt?.mobile_phone,
+        jwt?.mobileNo
+      ) || ''
+    },
+
+    // 1. 获取全国系统授权信息状态（数据来自 /sys/token/page 的列表项）
     getAuthTokenStatus() {
-      return myApi.tokenPage({ page: 1, size: 1 }).then(res => {
-        if (res.data?.records?.length > 0) {
-          const info = res.data.records[0]
-          this.authorizationInfo = info.token
-          this.tokenId = info.id // 记录 ID 用于后续 PUT 操作
+      let user = null
+      try {
+        const userRaw = StorageUtil.getItemSync('user')
+        user = userRaw ? JSON.parse(userRaw) : null
+      } catch (e) {
+        user = null
+      }
+      const loginToken = StorageUtil.getItemSync('token') || window.tokenCache || ''
+      const jwt = this.parseJwtPayload(loginToken)
+      const userData = user?.data || {}
+      const userInfo = user?.userInfo || user?.user || {}
+
+      const loginOfficeId = this.pickFirstNonEmpty(
+        this.officeId,
+        user?.officeId,
+        userData?.officeId,
+        userInfo?.officeId,
+        user?.officeCode,
+        userData?.officeCode,
+        userInfo?.officeCode,
+        user?.office?.id,
+        userData?.office?.id,
+        userInfo?.office?.id,
+        jwt?.officeId,
+        jwt?.officeCode,
+        jwt?.orgId
+      )
+      if (loginOfficeId) {
+        this.officeId = loginOfficeId
+      }
+
+      const applyTokenInfo = (info, fallbackRes) => {
+        if (info) {
+          // 根据page里的token字段判断是否已填写
+          const tokenValue = this.pickNationalTokenFromRecord(info)
+          this.authorizationInfo = tokenValue ? '已填写' : ''
+          this.tokenId = info.id != null ? info.id : null
+          if (!this.userName || this.userName === '未获取到用户名') {
+            this.userName = this.pickFirstNonEmpty(
+              info.createdName,
+              info.userName,
+              info.name,
+              info.realName,
+              info.account,
+              info.username,
+              info.userAccount,
+              this.userName
+            )
+          }
+          if (!this.userCode || this.userCode === '未获取到工号') {
+            this.userCode = this.pickFirstNonEmpty(
+              info.updatedBy,
+              info.jobNo,
+              info.workNo,
+              info.employeeNo,
+              info.employeeId,
+              info.staffNo,
+              info.staffId,
+              info.userNo,
+              this.userCode
+            )
+          }
+          return
         }
+        // 没有记录时认为未填写
+        this.authorizationInfo = ''
+        this.tokenId = null
+      }
+
+      const buildOfficeQuery = (base) => {
+        const q = { page: 1, size: 50, ...base }
+        if (loginOfficeId) {
+          q.id = loginOfficeId
+          q.officeId = loginOfficeId
+        }
+        return q
+      }
+
+      const findRecordForOffice = (records) => {
+        if (!records.length) {
+          return null
+        }
+        if (!loginOfficeId) {
+          return records.find(r => this.pickNationalTokenFromRecord(r)) || records[0]
+        }
+        const oid = String(loginOfficeId)
+        const byOffice = records.find(r =>
+          String(r?.id ?? '') === oid ||
+          String(r?.officeId ?? '') === oid
+        )
+        if (byOffice) {
+          return byOffice
+        }
+        // 如果没有按officeId匹配到记录，尝试返回第一条有token的记录
+        const recordWithToken = records.find(r => this.pickNationalTokenFromRecord(r))
+        if (recordWithToken) {
+          return recordWithToken
+        }
+        // 如果都没有，返回第一条记录      
+        return records[0]
+      }
+
+      return myApi.tokenPage(buildOfficeQuery({})).then(async res => {
+        let records = this.extractTokenPageRecords(res)
+        let matched = findRecordForOffice(records)
+        if (matched) {
+          applyTokenInfo(matched, res)
+          return
+        }
+
+        const allRes = await myApi.tokenPage({ page: 1, size: 100 })
+        records = this.extractTokenPageRecords(allRes)
+        matched = findRecordForOffice(records)
+        applyTokenInfo(matched, allRes)
       }).catch(err => console.error('获取授权信息失败', err))
     },
 
-    // 2. 获取企业认证状态 (通过单位列表接口)
+    // 2. 获取企业认证状态
     getOfficeStatus() {
-      // 此处对应 index.js 中的 officeData 或类似查询接口
       return myApi.syncData().then(res => {
-        if (res.data) {
-          this.companyName = res.data.name || ''
+        const data = res.data || res.result
+        if (data) {
+          const newOfficeId = data.officeId || data.id || data.office?.id || data.office?.officeId
+          if (newOfficeId) {
+            this.officeId = String(newOfficeId)
+          }
+          this.companyName = data.name || this.companyName
           this.isCertified = !!this.companyName
+          
+          if (this.officeId) {
+            myApi.officeData(this.officeId).then(res => {
+              const data = res.result || res.data
+              if (data) {
+                this.companyName = data.name || this.companyName
+                this.unifiedSocialCreditCode = data.code || ''
+                this.registeredAddress = data.address || data.gszcdxxdz || ''
+                this.administrativeDivision = data.xzqh || data.gszcdxzqh || ''
+                this.legalRepresentative = data.fddbr || ''
+                this.industry = data.hylbdm || ''
+                this.companyContact = data.lxr || ''
+                this.companyPhone = data.lxrsj || data.fddbrlxdh || ''
+              }
+            }).catch((err) => {
+            })
+          } else {
+          }
+        } else {
+
         }
+      }).catch((err) => {
       })
     },
 
-    // 3. 统一刷新当前标签页下的列表
+    parseJwtPayload(token) {
+      try {
+        if (!token || token.split('.').length < 2) return {}
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+        const json = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(c => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
+            .join('')
+        )
+        return JSON.parse(json)
+      } catch (e) {
+        return {}
+      }
+    },
+
+    // 3. 统一刷新当前标签页下的列表 (补充了总条数 totalCount 的赋值)
     refreshList() {
       const params = { page: this.currentPage, size: this.pageSize }
       
       if (this.currentTab === 'agent') {
-        myApi.operatorPage(params).then(res => { this.agentData = res.data.records })
+        myApi.operatorPage(params).then(res => { 
+          const data = res.result || res.data
+          this.agentData = data.records || []
+          this.totalCount = data.total || 0 
+        }).catch(() => {
+          this.agentData = []
+          this.totalCount = 0
+        })
       } else if (this.currentTab === 'iot') {
-        myApi.equipmentPage(params).then(res => { this.iotData = res.data.records })
+        myApi.equipmentPage(params).then(res => { 
+          const data = res.result || res.data
+          this.iotData = data.records || []
+          this.totalCount = data.total || 0 
+        }).catch(() => {
+          this.iotData = []
+          this.totalCount = 0
+        })
       } else if (this.currentTab === 'business') {
         this.fetchBusinessData()
+      } else {
       }
     },
 
-    // 4. 业务信息分页查询
+    // 4. 业务信息分页查询 (补充了总条数 totalCount 的赋值)
     fetchBusinessData() {
       const params = { page: this.currentPage, size: this.pageSize }
       switch (this.currentBusinessNav) {
         case 'waste-info':
-          myApi.wastePage(params).then(res => { this.wasteInfoData = res.data.records })
+          myApi.wastePage(params).then(res => { 
+            const data = res.result || res.data
+            this.wasteInfoData = data.records || []
+            this.totalCount = data.total || 0
+          }).catch((err) => {
+            this.wasteInfoData = []
+            this.totalCount = 0
+          })
           break
         case 'storage':
-          myApi.storagePage(params).then(res => { this.storageData = res.data.records })
+          myApi.storagePage(params).then(res => { 
+            const data = res.result || res.data
+            this.storageData = data.records || []
+            this.totalCount = data.total || 0
+          }).catch((err) => {
+            this.storageData = []
+            this.totalCount = 0
+          })
           break
         case 'plan-produce':
-          myApi.productionPage(params).then(res => { this.planProduceData = res.data.records })
+          myApi.productionPage(params).then(res => { 
+            const data = res.result || res.data
+            this.planProduceData = data.records || []
+            this.totalCount = data.total || 0
+          }).catch((err) => {
+            this.planProduceData = []
+            this.totalCount = 0
+          })
           break
         case 'plan-dispose':
-          myApi.dispositionPage(params).then(res => { this.planDisposeData = res.data.records })
+          myApi.dispositionPage(params).then(res => { 
+            const data = res.result || res.data
+            this.planDisposeData = data.records || []
+            this.totalCount = data.total || 0
+          }).catch((err) => {
+            this.planDisposeData = []
+            this.totalCount = 0
+          })
+          break
+        case 'business-facility':
+          myApi.dispositionPage(params).then(res => {
+            const data = res.result || res.data
+            this.businessFacilityData = data.records || []
+            this.totalCount = data.total || 0
+          }).catch((err) => {
+            this.businessFacilityData = []
+            this.totalCount = 0
+          })
+          break
+        default:
+          this.totalCount = 0
           break
       }
     },
 
-    // 5. 保存授权信息 (新增或修改)
-    handleAuthConfirm() {
-      if (!this.authDialogValue) return Message.warning('请输入授权信息')
+    // 5. 保存授权信息
+    async handleAuthConfirm() {
+      const authToken = (this.authDialogValue || '').trim()
+      if (authToken.length < 1) return Message.warning('全国系统授权信息不能为空，请填写')
+      if (this.isSubmitting) return
       
-      // 根据是否存在 tokenId 决定调用 addToken(POST) 还是 updateToken(PUT)
-      const apiMethod = this.tokenId ? settingApi.updateToken : myApi.addToken
-      const data = { token: this.authDialogValue }
-      if (this.tokenId) data.id = this.tokenId
+      this.isSubmitting = true
+      let user = null
+      try {
+        const userRaw = StorageUtil.getItemSync('user')
+        user = userRaw ? JSON.parse(userRaw) : null
+      } catch (e) {
+        user = null
+      }
+      const token = StorageUtil.getItemSync('token') || window.tokenCache || ''
+      const jwt = this.parseJwtPayload(token)
 
-      apiMethod(data).then(() => {
+      // 业务约定：token记录里的 id 使用登录用户 officeId
+      let id = ''
+      let officeId = String(
+        user?.officeId ||
+        user?.officeCode ||
+        this.officeId ||
+        jwt?.officeId ||
+        jwt?.officeCode ||
+        jwt?.orgId ||
+        ''
+      )
+
+      if (!officeId) {
+        try {
+          await this.getOfficeStatus()
+          officeId = String(officeId || this.officeId || '')
+        } catch (e) {}
+      }
+
+      id = String(officeId || '')
+
+      // 保存前先同步一�?token 列表：若后端已有记录则拿�?tokenId，只走一次更新，避免「先新增�?0002 再更新」两次写�?两次请求
+      if (!this.tokenId) {
+        try {
+          await this.getAuthTokenStatus()
+        } catch (e) {}
+      }
+
+      // 接口约定：body �?{ id, token }；更新时�?tokenPage 带回�?this.tokenId，新增时�?officeId
+      const submitData = {
+        token: authToken,
+        id
+      }
+      if (this.tokenId != null && this.tokenId !== '') {
+        submitData.id = this.tokenId
+      }
+      if (submitData.id === '' || submitData.id == null) {
+        this.isSubmitting = false
+        return Message.warning('缺少 id（officeId �?token 记录 id），请重新登录后重试')
+      }
+
+      try {
+        // 已存在记录时走更新；�?tokenId 时先新增，若后端提示 0002（已有有�?token）则改走更新
+        if (this.tokenId) {
+          await settingApi.updateToken(submitData)
+        } else {
+          try {
+            await myApi.addToken(submitData)
+          } catch (e) {
+            const code = e?.code
+            const msg = e?.message || e?.msg || ''
+            if (code === '0002' || /请勿重复添加|有效期内/.test(msg)) {
+              await settingApi.updateToken(submitData)
+            } else {
+              throw e
+            }
+          }
+        }
         Message.success('保存成功')
-        this.authorizationInfo = this.authDialogValue
+        // 保存成功后设置为已填写
+        this.authorizationInfo = '已填写'
         this.showAuthDialog = false
-        this.getAuthTokenStatus() // 刷新 ID 和状态
-      })
+        await this.getAuthTokenStatus()
+      } catch (err) {
+        console.error('[token-submit] failed payload:', JSON.stringify(submitData))
+        console.error('[token-submit] failed response:', err?.response?.data || err)
+        Message.error((err?.message || err?.msg || err?.response?.data?.message || '保存失败'))
+      } finally {
+        this.isSubmitting = false
+      }
     },
 
     // 6. 经办人管理
     handleAddAgentSave() {
-      if (!this.newAgent.name || !this.newAgent.type) return Message.warning('请填写完整')
+      if (!this.newAgent.operatorName || !this.newAgent.operatorType) return Message.warning('请填写完整')
+      if (this.isSubmitting) return;
+      
+      this.isSubmitting = true;
       myApi.addoperator(this.newAgent).then(() => {
         Message.success('添加成功')
         this.showAddAgentDialog = false
+        this.newAgent = { operatorName: '', operatorType: '' } // 提交成功后清空表单
         this.refreshList()
+      }).finally(() => {
+        this.isSubmitting = false;
       })
     },
 
     // 7. 物联网设备管理
     handleAddIotSave() {
+      if (!this.newIotDevice.code || !this.newIotDevice.type) return Message.warning('请填写完整')
+          if (this.isSubmitting) return;
+
+      this.isSubmitting = true;
       myApi.addequipment(this.newIotDevice).then(() => {
         Message.success('添加成功')
         this.showAddIotDialog = false
+        this.newIotDevice = { code: '', type: '', enabled: false } // 提交成功后清空表单
         this.refreshList()
+      }).finally(() => {
+        this.isSubmitting = false;
       })
     },
 
     // 8. 统一删除确认逻辑
     handleDeleteConfirm() {
+      if (this.isSubmitting) return;
       const id = this.pendingDeleteId
+      this.isSubmitting = true;
+
       if (this.currentTab === 'agent') {
         myApi.deloperator(id).then(() => {
           Message.success('删除成功')
+          this.showDeleteDialog = false
           this.refreshList()
-        })
+        }).finally(() => { this.isSubmitting = false })
       } else if (this.currentTab === 'iot') {
         myApi.delequipment(id).then(() => {
           Message.success('删除成功')
+          this.showDeleteDialog = false
           this.refreshList()
-        })
+        }).finally(() => { this.isSubmitting = false })
       }
-      this.showDeleteDialog = false
     },
 
     // --- UI 交互方法 ---
     handleTabClick(tab) {
-      this.currentTab = tab
-      this.currentPage = 1
-      this.refreshList()
+      try {
+        this.currentTab = tab
+        this.currentPage = 1
+        this.refreshList()
+      } catch (error) {
+        console.error('[DEBUG] handleTabClick: 错误:', error)
+      }
     },
     handleBusinessNavClick(nav) {
-      this.currentBusinessNav = nav
-      this.currentPage = 1
-      this.fetchBusinessData()
+      try {
+        this.currentBusinessNav = nav
+        this.currentPage = 1
+        this.fetchBusinessData()
+      } catch (error) {
+        console.error('[DEBUG] handleBusinessNavClick: 错误:', error)
+      }
     },
     handleAuthEdit() {
-      this.authDialogValue = this.authorizationInfo
-      this.showAuthDialog = true
+      // 重新获取token信息，确保弹窗显示最新的token值
+      this.getAuthTokenStatus().then(() => {
+        // 从token记录中获取实际的token值
+        if (this.tokenId) {
+          myApi.tokenPage({ page: 1, size: 50, id: this.tokenId }).then(res => {
+            const records = this.extractTokenPageRecords(res)
+            if (records.length > 0) {
+              this.authDialogValue = this.pickNationalTokenFromRecord(records[0])
+            } else {
+              this.authDialogValue = ''
+            }
+            this.showAuthDialog = true
+          }).catch(() => {
+            this.authDialogValue = ''
+            this.showAuthDialog = true
+          })
+        } else {
+          this.authDialogValue = ''
+          this.showAuthDialog = true
+        }
+      })
     },
     handleDeleteClick(id) {
       this.pendingDeleteId = id
@@ -1050,10 +1563,69 @@ export default {
       this.currentPage = page
       this.refreshList()
     },
+
+    // 企业认证
+    handleCertifyEdit() {
+      this.showCertifyDialog = true;
+    },
+    handleCertifyConfirm() {
+      // TODO: 在这里接入提交企业认证接口
+      this.$message.success('认证信息已提交');
+      this.showCertifyDialog = false;
+    },
+
+    // 修改密码 / 手机号
+    handleModifyClick(type) {
+      this.modifyType = type;
+      this.showModifyDialog = true;
+    },
+    handleModifyCancel() {
+      this.showModifyDialog = false;
+    },
+    handleModifyConfirm() {
+      // TODO: 在这里接入修改密码/手机接口
+      this.$message.success('修改成功');
+      this.showModifyDialog = false;
+    },
+
+    // 经办人 / 物联网设备 - 修改操作
+    handleEditClick(type, item) {
+      this.editType = type;
+      // 使用浅拷贝防止直接修改表格数据
+      this.editItem = { ...item }; 
+      this.showEditDialog = true;
+    },
+    handleEditCancel() {
+      this.showEditDialog = false;
+      this.editItem = null;
+    },
+    handleEditConfirm() {
+      if (this.isSubmitting) return;
+      this.isSubmitting = true;
+
+      // 判断是修改经办人还是修改物联网设备
+      const apiMethod = this.editType === 'agent' ? myApi.editoperator : myApi.editequipmentStatus;
+      
+      apiMethod(this.editItem).then(() => {
+        this.$message.success('修改成功');
+        this.showEditDialog = false;
+        this.refreshList();
+      }).finally(() => {
+        this.isSubmitting = false;
+      });
+    },
+
+    // 取消删除操作
+    handleDeleteCancel() {
+      this.showDeleteDialog = false;
+      this.pendingDeleteId = null;
+    },
     // 其余 Dialog 取消方法...
     handleAuthCancel() { this.showAuthDialog = false },
     handleCertifyCancel() { this.showCertifyDialog = false },
+    handleAddAgentClick() { this.showAddAgentDialog = true },
     handleAddAgentCancel() { this.showAddAgentDialog = false },
+    handleAddIotClick() { this.showAddIotDialog = true },
     handleAddIotCancel() { this.showAddIotDialog = false }
   }
 }
@@ -1088,7 +1660,6 @@ export default {
   width: 100%;
   height: 140px;
   border-radius: 24px;
-  angle: 0 deg;
   opacity: 1;
   background: #FFFFFF;
   display: flex;
@@ -1298,7 +1869,6 @@ export default {
 .tab-container {
   width: 100%;
   border-radius: 24px;
-  angle: 0 deg;
   opacity: 1;
   background: #FFFFFF;
   display: flex;
@@ -1329,7 +1899,6 @@ export default {
   height: 0px;
   border-top: 1px solid #E5E7EB;
   margin-bottom: 5px;
-  angle: 0 deg;
   opacity: 1;
 }
 
@@ -1348,7 +1917,6 @@ export default {
   white-space: nowrap;
   border-radius: 100px;
   gap: 10px;
-  angle: 0 deg;
   opacity: 1;
   background: transparent;
   height: 32px;
@@ -1469,7 +2037,6 @@ export default {
   white-space: nowrap;
   border-radius: 100px;
   gap: 10px;
-  angle: 0 deg;
   opacity: 1;
   background: transparent;
   height: 32px;
@@ -2328,7 +2895,7 @@ export default {
   background: #E6A23C;
 }
 
-/* 物联网设备管理样式 */
+/* 物联网设备管理样�?*/
 .add-iot-btn {
   width: 120px;
   height: 32px;
