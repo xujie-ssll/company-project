@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="personal-center">
     <div class="personal-content">
       <div class="user-info-header">
@@ -1230,6 +1230,13 @@ export default {
     // 2. 获取企业认证状态
     getOfficeStatus() {
       return myApi.syncData().then(res => {
+        // 检查响应是否成功
+        if (res.success === false || res.code === '0002') {
+          console.error('同步单位信息失败', res)
+          Message.error(res.message || '同步信息失败，请重试')
+          return
+        }
+        
         const data = res.data || res.result
         if (data) {
           const newOfficeId = data.officeId || data.id || data.office?.id || data.office?.officeId
@@ -1241,6 +1248,13 @@ export default {
           
           if (this.officeId) {
             myApi.officeData(this.officeId).then(res => {
+              // 检查响应是否成功
+              if (res.success === false) {
+                console.error('获取企业详情失败', res)
+                Message.error(res.message || '获取企业详情失败，请重试')
+                return
+              }
+              
               const data = res.result || res.data
               if (data) {
                 this.companyName = data.name || this.companyName
@@ -1253,13 +1267,14 @@ export default {
                 this.companyPhone = data.lxrsj || data.fddbrlxdh || ''
               }
             }).catch((err) => {
+              console.error('获取企业详情失败', err)
+              Message.error('获取企业详情失败，请重试')
             })
-          } else {
           }
-        } else {
-
         }
       }).catch((err) => {
+        console.error('同步单位信息失败', err)
+        Message.error('同步信息失败，请重试')
       })
     },
 
@@ -1405,7 +1420,7 @@ export default {
 
       id = String(officeId || '')
 
-      // 保存前先同步一�?token 列表：若后端已有记录则拿�?tokenId，只走一次更新，避免「先新增�?0002 再更新」两次写�?两次请求
+      // 保存前先同步一下token 列表：若后端已有记录则拿到tokenId，只走一次更新，避免「先新增后0002 再更新」两次写操作两次请求
       if (!this.tokenId) {
         try {
           await this.getAuthTokenStatus()

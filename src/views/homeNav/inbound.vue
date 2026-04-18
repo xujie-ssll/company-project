@@ -135,7 +135,7 @@
             <div class="form-row">
               <div class="form-item">
                 <label>贮存设施编号</label>
-                <el-select v-model="addForm.storageNo" placeholder="请选择" class="drawer-select" :disabled="isDetailMode">
+                <el-select v-model="addForm.storageNo" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="handleStorageVisibleChange">
                   <el-option
                     v-for="option in storageOptions"
                     :key="option.value"
@@ -146,7 +146,7 @@
               </div>
               <div class="form-item">
                 <label>贮存部门经办人</label>
-                <el-select v-model="addForm.storageAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode">
+                <el-select v-model="addForm.storageAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="handleStorageAgentVisibleChange">
                   <el-option
                     v-for="option in storageAgentOptions"
                     :key="option.value"
@@ -157,7 +157,7 @@
               </div>
               <div class="form-item">
                 <label>运送部门经办人</label>
-                <el-select v-model="addForm.transportAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode">
+                <el-select v-model="addForm.transportAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="handleTransportAgentVisibleChange">
                   <el-option
                     v-for="option in transportAgentOptions"
                     :key="option.value"
@@ -239,7 +239,6 @@
         </div>
 
         <div class="drawer-footer" v-if="!isDetailMode">
-          <el-button @click="drawerVisible = false">取消</el-button>
           <el-button type="primary" @click="handleDrawerSave" class="btn-drawer-save">保存</el-button>
           <el-button type="success" @click="handleDrawerSubmit" class="btn-drawer-submit">确定申报</el-button>
         </div>
@@ -719,9 +718,6 @@ export default {
           this.drawerVisible = true;
           this.selectedRows = []; // 清空勾选
           
-          // 获取抽屉选项数据
-          this.fetchDrawerOptions();
-          
           // 获取关联数据（详情模式下需要显示）
           this.fetchAssociateData();
         }
@@ -746,24 +742,31 @@ export default {
       };
     },
     
-    // 获取抽屉选项数据（贮存设施、经办人）
-    fetchDrawerOptions() {
-      // 并行获取贮存设施、贮存部门经办人和运送部门经办人列表
-      Promise.all([
-        myApi.storagePage({}),
-        dictionaryApi.operatorInfoPage({ 
-          page: 1, 
-          size: 100,
-          filter: [{name: "operatorType", value: "STORAGE", type: "EQ"}]
-        }),
-        dictionaryApi.operatorInfoPage({ 
-          page: 1, 
-          size: 100,
-          filter: [{name: "operatorType", value: "TRANSPORT", type: "EQ"}]
-        })
-      ]).then(([storageRes, storageOperatorRes, transportOperatorRes]) => {
-        // 处理贮存设施数据
-        const storageData = storageRes.result || storageRes.data;
+    // 处理贮存设施下拉框打开事件
+    handleStorageVisibleChange(visible) {
+      if (visible) {
+        this.fetchStorageOptions();
+      }
+    },
+    
+    // 处理贮存部门经办人下拉框打开事件
+    handleStorageAgentVisibleChange(visible) {
+      if (visible) {
+        this.fetchStorageAgentOptions();
+      }
+    },
+    
+    // 处理运送部门经办人下拉框打开事件
+    handleTransportAgentVisibleChange(visible) {
+      if (visible) {
+        this.fetchTransportAgentOptions();
+      }
+    },
+    
+    // 获取贮存设施选项数据
+    fetchStorageOptions() {
+      myApi.storagePage({}).then(res => {
+        const storageData = res.result || res.data;
         if (storageData) {
           this.storageOptions = (storageData.records || []).map(item => {
             // 使用正则表达式从第一个字母（A-Z）到结尾提取
@@ -778,9 +781,17 @@ export default {
             };
           });
         }
-        
-        // 处理贮存部门经办人数据
-        const storageOperatorData = storageOperatorRes.result || storageOperatorRes.data;
+      }).catch(err => {
+        console.error('获取贮存设施数据失败', err);
+      });
+    },
+    
+    // 获取贮存部门经办人选项数据
+    fetchStorageAgentOptions() {
+      dictionaryApi.operatorInfoPage({ 
+        filter: [{name: "operatorType", value: "STORAGE", type: "EQ"}]
+      }).then(res => {
+        const storageOperatorData = res.result || res.data;
         if (storageOperatorData) {
           const storageOperatorRecords = storageOperatorData.records || [];
           this.storageAgentOptions = storageOperatorRecords.map(item => ({
@@ -788,9 +799,17 @@ export default {
             value: item.operatorName
           }));
         }
-        
-        // 处理运送部门经办人数据
-        const transportOperatorData = transportOperatorRes.result || transportOperatorRes.data;
+      }).catch(err => {
+        console.error('获取贮存部门经办人数据失败', err);
+      });
+    },
+    
+    // 获取运送部门经办人选项数据
+    fetchTransportAgentOptions() {
+      dictionaryApi.operatorInfoPage({ 
+        filter: [{name: "operatorType", value: "TRANSPORT", type: "EQ"}]
+      }).then(res => {
+        const transportOperatorData = res.result || res.data;
         if (transportOperatorData) {
           const transportOperatorRecords = transportOperatorData.records || [];
           this.transportAgentOptions = transportOperatorRecords.map(item => ({
@@ -799,7 +818,7 @@ export default {
           }));
         }
       }).catch(err => {
-        console.error('获取抽屉选项数据失败', err);
+        console.error('获取运送部门经办人数据失败', err);
       });
     },
     
@@ -902,8 +921,6 @@ export default {
         // 编辑模式或新增模式：获取未入库的危废
 
         const params = {
-          page: 1,  // 固定第一页
-          size: 100,  // 足够大的数量获取全量数据
           sorted: [{name: "cstzbm", type: "DESC"}],
           filter: [
             {name: "statusReport", value: "1", type: "EQ"},
@@ -1078,9 +1095,6 @@ export default {
       
       // 打开抽屉
       this.drawerVisible = true;
-      
-      // 获取抽屉选项数据
-      this.fetchDrawerOptions();
       
       // 获取关联数据
       this.fetchAssociateData();
@@ -1376,7 +1390,7 @@ export default {
   color: #4E5969;
   height: 32px !important;
   line-height: 32px !important;
-  padding: 0 12px !important;
+  padding: 0 0px !important;
 }
 
 /* 统一控制关联表格行高 */
@@ -1385,20 +1399,19 @@ export default {
 }
 
 .associate-table :deep(.el-table__cell) {
-  height: 32px !important;
-  line-height: 32px !important;
-  padding: 0 12px !important;
-  font-family: Microsoft YaHei;
-  font-weight: 400;
-  font-style: normal;
-  font-size: 12px;
-  letter-spacing: 0%;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    padding: 0 0px !important;
+    font-family: Microsoft YaHei;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 12px;
+    letter-spacing: 0%;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
-/* 将复选框勾选颜色改为主题绿 */
 .associate-table :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
   background-color: #13B63A;
   border-color: #13B63A;

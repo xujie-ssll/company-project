@@ -616,9 +616,14 @@ export default {
           return true;
         }
       }).then(({ value }) => {
+        console.log('撤销请求参数:', {
+          bz: value,
+          relId: row.id
+        });
+        console.log('完整的row数据:', row);
         outboundApi.outCancelData({
-          id: row.id,
-          cancelReason: value
+          bz: value,
+          relId: row.id
         }).then(res => {
           if (res.code === '0000' || res.success) {
             this.fetchOutboundData();
@@ -628,7 +633,8 @@ export default {
           }
         }).catch(err => {
           console.error('撤销失败', err);
-          Message.error('撤销失败，请重试');
+          console.error('错误详情:', err.response || err);
+          Message.error('撤销失败：' + (err.message || '网络错误，请重试'));
         });
       }).catch(() => {});
     },
@@ -1156,6 +1162,7 @@ export default {
         ysbmjbr: this.addForm.transportAgent,
         storageIdList: this.selectedRows.map(item => String(item.id)),
         qx: this.addForm.qxValue ,
+        qxValue: this.addForm.qxValue,
         batchReport: false,
         cksj: new Date().toISOString().slice(0, 19).replace('T', ' ')
       };
@@ -1351,7 +1358,7 @@ export default {
   box-shadow: none !important;
 }
 
-/* 确保所有可能的线条都被移除 */
+
 .custom-tabs :deep(.el-tabs__nav-container) {
   border-bottom: none !important;
   box-shadow: none !important;
@@ -1426,7 +1433,6 @@ export default {
   font-size: 16px;
 }
 
-/* ★ 关键：将 body 高度设为 0，让内部的 scroll 容器生效 */
 :deep(.add-outbound-drawer .el-drawer__body) {
   height: 0; 
 }
@@ -1533,7 +1539,6 @@ export default {
   border-color: #13B63A;
 }
 
-/* 抽屉内的独立分页栏 */
 .drawer-pagination-wrapper {
   display: flex;
   justify-content: space-between;

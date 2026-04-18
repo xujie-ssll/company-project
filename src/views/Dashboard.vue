@@ -131,8 +131,8 @@ export default {
   data() {
     return {
       activeMenu: 'personal',
-    currentView: 'personal', // dashboard or personal
-      currentTab: 'basic', // basic, unit, business, agent, iot
+      currentView: 'personal', 
+      currentTab: 'basic', 
       dialogVisible: false,
       dialogTitle: '',
       currentItem: null,

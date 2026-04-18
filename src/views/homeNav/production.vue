@@ -19,7 +19,7 @@
         </div>
         <div class="query-item">
           <label>危险废物</label>
-          <el-select v-model="wasteType" placeholder="全部" class="query-select" @change="handleWasteTypeChange">
+          <el-select v-model="wasteType" placeholder="全部" class="query-select" @change="handleMainWasteTypeChange" @visible-change="handleWasteDropdownVisible">
             <el-option label="全部" value="" />
             <el-option v-for="option in wasteOptions" :key="option.value" :label="option.label" :value="option.value" />
           </el-select>
@@ -164,7 +164,7 @@
           <!-- 选择危废 -->
           <div class="section">
             <h4>选择危废</h4>
-            <el-select v-model="newWasteForm.wasteType" placeholder="请选择危废" class="full-width-select" @change="handleWasteTypeChange">
+            <el-select v-model="newWasteForm.wasteType" placeholder="请选择危废" class="full-width-select" @change="handleWasteTypeChange" @visible-change="handleDrawerWasteDropdownVisible">
               <el-option 
                 v-for="option in wasteOptions" 
                 :key="option.id || option.value" 
@@ -345,7 +345,7 @@ export default {
   // 计算属性：分页数据
   computed: {
     paginatedData() {
-      const pageSize = 10; // 表格高度360px，行高32px，可显示10行（减去表头32px后）
+      const pageSize = 10; 
       const startIndex = (this.currentPage - 1) * pageSize;
       const endIndex = startIndex + pageSize;
       return this.tableData.slice(startIndex, endIndex);
@@ -354,8 +354,83 @@ export default {
   mounted() {
     // 页面加载时获取表格数据
     this.fetchProductionData()
+    // 获取危险废物下拉框数据
+    this.fetchWasteOptions()
+    // 获取生产设施标签页数据
+    this.fetchFacilityTabs()
   },
   methods: {
+    // 获取危险废物下拉框数据
+    fetchWasteOptions() {
+      myApi.wastePage({
+      }).then(res => {
+        const data = res.result || res.data
+        if (data) {
+          const wasteRecords = data.records || []
+          
+          const wasteMap = new Map()
+          wasteRecords.forEach(item => {
+            if (item.fwmc && item.cfxxtybh) {
+              if (!wasteMap.has(item.fwmc)) {
+                wasteMap.set(item.fwmc, item)
+              }
+            }
+          })
+          
+          this.wasteOptions = Array.from(wasteMap.values()).map(item => ({
+            label: item.fwmc,
+            value: item.fwmc,
+            fwdm: item.fwdm,
+            cfxxtybh: item.cfxxtybh,
+            jldw: item.jldw,
+            rqlx: item.rqlx,
+            rqcz: item.rqcz,
+            rqrl: item.rqrl
+          }))
+        }
+      }).catch(err => {
+        console.error('获取危废数据失败', err)
+      })
+    },
+    
+    // 获取生产设施标签页数据
+    fetchFacilityTabs() {
+      myApi.productionPage({
+      }).then(res => {
+        const data = res.result || res.data
+        if (data) {
+          const records = data.records || []
+
+          const facilityTabMap = new Map()
+          records.forEach(item => {
+            if (item.cfsstybh) {
+              if (!facilityTabMap.has(item.cfsstybh)) {
+                const match = item.cfsstybh.match(/[A-Z].*/)
+                const facilityName = match ? match[0] : item.cfsstybh
+                facilityTabMap.set(item.cfsstybh, {
+                  ssbm: item.cfsstybh,
+                  ssmc: facilityName
+                })
+              }
+            }
+          })
+          this.facilityTabs = Array.from(facilityTabMap.values())
+        }
+      }).catch(err => {
+        console.error('获取生产设施标签页数据失败', err)
+      })
+    },
+    
+    // 格式化日期
+    formatDate(date) {
+      if (!date) return ''
+      const d = new Date(date)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+    
     // 格式化日期时间
     formatDateTime(date) {
       if (!date) return ''
@@ -384,27 +459,36 @@ export default {
     fetchProductionData() {
       // 开始加载
       this.loading = true
-      
+
       const params = {
-        page: this.currentPage,
-        size: 100
+        sorted: [
+          { name: "statusReport", type: "ASC" },
+          { name: "cstzbm", type: "DESC" }
+        ]
       }
-      
+
       // 如果不是全部标签页，添加scsstybh筛选条件
       if (this.activeFacilityTab !== 'all') {
-        params.scsstybh = this.activeFacilityTab
+        if (!params.filter) {
+          params.filter = []
+        }
+        params.filter.push({
+          name: "scsstybh",
+          value: this.activeFacilityTab,
+          type: "EQ"
+        })
       }
-      
+
       // 添加生产日期筛选
       if (this.productionDate) {
-        params.cssj = this.productionDate
+        params.cssj = this.formatDate(this.productionDate)
       }
-      
+
       // 添加危废类型筛选
       if (this.wasteType) {
         params.fwmc = this.wasteType
       }
-      
+
       // 添加申报状态筛选
       if (this.declarationStatus) {
         const statusValue = this.declarationStatus === '已申报' ? 1 : 0
@@ -421,14 +505,6 @@ export default {
           value: this.searchKeyword,
           type: "LIKE"
         })
-      }
-
-      // 添加排序参数
-      if (!params.sorted) {
-        params.sorted = [
-          { name: "statusReport", type: "ASC" },
-          { name: "cstzbm", type: "DESC" }
-        ]
       }
       
       generateApi.productionPage(params).then(res => {
@@ -522,28 +598,6 @@ export default {
             label: capacity,
             value: capacity
           }))
-          
-          // 提取生产设施标签页数据
-          const facilityTabMap = new Map()
-          this.originalTableData.forEach(item => {
-            if (item.scsstybh) {
-              // 只保存每个scsstybh的第一个记录
-              if (!facilityTabMap.has(item.scsstybh)) {
-                // 优先使用ssmc作为显示文本，否则从scsstybh中提取代码
-                let facilityName = item.ssmc
-                if (!facilityName) {
-                  // 使用正则表达式提取从第一个字母开始到末尾的部分
-                  const match = item.scsstybh.match(/[A-Z].*/)
-                  facilityName = match ? match[0] : item.scsstybh
-                }
-                facilityTabMap.set(item.scsstybh, {
-                  ssbm: item.scsstybh,
-                  ssmc: facilityName
-                })
-              }
-            }
-          })
-          this.facilityTabs = Array.from(facilityTabMap.values())
 
         }
       }).catch(err => {
@@ -660,8 +714,15 @@ export default {
       this.activeFacilityTab = 'all' // 重置标签页为全部
     },
     
-    // 危废类型变化处理
-    handleWasteTypeChange() {
+    // 危废下拉框可见性变化
+    handleWasteDropdownVisible(visible) {
+      if (visible) {
+        this.fetchWasteOptions()
+      }
+    },
+    
+    // 主页面危废类型变化处理
+    handleMainWasteTypeChange() {
       // 当选择危废类型时，重置其他筛选条件
       this.productionDate = '' // 清空产生日期
       this.declarationStatus = '' // 清空申报状态
@@ -747,12 +808,8 @@ export default {
       // 并行获取危废类型和经办人列表数据
       Promise.all([
         myApi.wastePage({
-          page: 1,
-          size: 100
         }),
         myApi.operatorPage({
-          page: 1,
-          size: 100,
           filter: [{name: "operatorType", value: "PRODUCE", type: "EQ"}]
         })
       ]).then(([wasteRes, operatorRes]) => {
@@ -950,6 +1007,13 @@ export default {
         console.error('保存危废失败 - 详细信息', JSON.stringify(err, null, 2));
         this.$message.error('操作失败，请重试');
       });
+    },
+    
+    // 抽屉中危废下拉框可见性变化
+    handleDrawerWasteDropdownVisible(visible) {
+      if (visible) {
+        this.fetchWasteOptions()
+      }
     },
     
     // 危废类型选择变化
@@ -1379,7 +1443,7 @@ export default {
 
 .query-buttons {
   display: flex;
-  gap: 10px;
+  gap: 0;
   margin-left: auto;
 }
 
@@ -1417,7 +1481,14 @@ export default {
 .facility-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
+  padding: 0;
+}
+
+.facility-actions .el-button--success {
+  background-color: #13B63A !important;
+  border-color: #13B63A !important;
+  color: white !important;
 }
 
 .search-input {
@@ -1560,8 +1631,9 @@ export default {
 /* 操作按钮样式 */
 .operation-buttons {
   display: flex;
-  gap: 4px;
+  gap: 0;
   align-items: center;
+  padding: 0;
 }
 
 .operation-buttons .el-button {

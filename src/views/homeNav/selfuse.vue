@@ -15,7 +15,7 @@
         </div>
         <div class="query-item">
           <label>处置类型</label>
-          <el-select v-model="disposeType" placeholder="全部" class="custom-select">
+          <el-select v-model="disposeType" placeholder="全部" class="custom-select" @visible-change="(visible) => visible && fetchDisposeTypeOptions()">
             <el-option label="全部" value="" />
             <el-option v-for="option in disposeTypeOptions" :key="option.value" :label="option.label" :value="option.value" />
           </el-select>
@@ -47,6 +47,9 @@
             class="search-input"
             prefix-icon="el-icon-search"
             clearable
+            @blur="handleQuery"
+            @keyup.enter="handleQuery"
+            @click="handleQuery"
           />
           <el-button type="success" class="btn-add" @click="handleAddDispose">
             添加危废处置单
@@ -70,12 +73,11 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="160" align="right">
+          <el-table-column label="操作" min-width="120" align="right">
             <template slot-scope="scope">
               <div class="action-links">
                 <template v-if="scope.row.status === '未申报'">
                   <el-button type="text" class="text-danger" @click="handleDelete(scope.row)">删除</el-button>
-                  <el-button type="text" class="text-warning" @click="handleModify(scope.row)">修改</el-button>
                   <el-button type="text" class="text-success" @click="handleDeclare(scope.row)">申报</el-button>
                 </template>
                 <template v-else>
@@ -116,19 +118,19 @@
             <div class="form-row">
               <div class="form-item">
                 <label>自行利用/处置类型</label>
-                <el-select v-model="addForm.type" placeholder="请选择" class="drawer-select">
+                <el-select v-model="addForm.type" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="(visible) => visible && fetchDisposeTypeOptions()">
                   <el-option v-for="option in disposeTypeOptions" :key="option.value" :label="option.label" :value="option.value" />
                 </el-select>
               </div>
               <div class="form-item">
                 <label>自行利用/处置类型设施</label>
-                <el-select v-model="addForm.facility" placeholder="请选择" class="drawer-select" @change="handleFacilityChange">
+                <el-select v-model="addForm.facility" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="(visible) => visible && fetchFacilityOptions()" @change="handleFacilityChange">
                   <el-option v-for="option in facilityOptions" :key="option.id" :label="option.label" :value="option.value" :data-id="option.id" />
                 </el-select>
               </div>
               <div class="form-item">
                 <label>自行利用/处置部门经办人</label>
-                <el-select v-model="addForm.disposeAgent" placeholder="请选择" class="drawer-select">
+                <el-select v-model="addForm.disposeAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="(visible) => visible && fetchOperatorOptions()">
                   <el-option v-for="option in operatorOptions" :key="option.value" :label="option.label" :value="option.value" />
                 </el-select>
               </div>
@@ -136,13 +138,13 @@
             <div class="form-row mt-16">
               <div class="form-item max-w-33">
                 <label>出库部门经办人</label>
-                <el-select v-model="addForm.outAgent" placeholder="请选择" class="drawer-select">
+                <el-select v-model="addForm.outAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="(visible) => visible && fetchOutOperatorOptions()">
                   <el-option v-for="option in outOperatorOptions" :key="option.value" :label="option.label" :value="option.value" />
                 </el-select>
               </div>
               <div class="form-item max-w-33">
                 <label>运送部门经办人</label>
-                <el-select v-model="addForm.transportAgent" placeholder="请选择" class="drawer-select">
+                <el-select v-model="addForm.transportAgent" placeholder="请选择" class="drawer-select" :disabled="isDetailMode" @visible-change="(visible) => visible && fetchTransportOperatorOptions()">
                   <el-option v-for="option in transportOperatorOptions" :key="option.value" :label="option.label" :value="option.value" />
                 </el-select>
               </div>
@@ -166,21 +168,21 @@
               @selection-change="handleSelectionChange"
               @select-all="handleSelectAll"
             >
-              <el-table-column type="selection" width="55" align="center"></el-table-column>
+              <el-table-column type="selection" width="55" align="center" v-if="!isDetailMode"></el-table-column>
               <el-table-column prop="prodNo" label="产生批次码" min-width="110"></el-table-column>
               <el-table-column prop="wasteName" label="危废名称" min-width="100"></el-table-column>
               <el-table-column prop="wasteCode" label="危废代码" min-width="100"></el-table-column>
               <el-table-column prop="digitalId" label="数字识别码" min-width="220"></el-table-column>
               <el-table-column label="标签信息" min-width="80">
-                <template>
-                  <span class="text-success cursor-pointer">查看标签</span>
+                <template slot-scope="scope">
+                  <span class="text-success cursor-pointer" @click="viewLabel(scope.row)">查看标签</span>
                 </template>
               </el-table-column>
               <el-table-column prop="amount" label="产生量" min-width="80"></el-table-column>
             </el-table>
 
             <div class="drawer-pagination-wrapper">
-              <div class="selected-info">
+              <div class="selected-info" v-if="!isDetailMode">
                 已选{{ selectedRows.length }}条 <span class="gap">共{{ drawerTotal }}条</span>
               </div>
               <el-pagination
@@ -195,18 +197,35 @@
           </div>
         </div>
 
-        <div class="drawer-footer">
+        <div class="drawer-footer" v-if="!isDetailMode">
           <el-button @click="handleDrawerSave" class="btn-drawer-save">保存</el-button>
           <el-button type="success" @click="handleDrawerSubmit" class="btn-drawer-submit">确定申报</el-button>
         </div>
+        <div class="drawer-footer" v-else>
+          <el-button @click="handleDrawerClose" class="btn-drawer-save">退出</el-button>
+        </div>
       </div>
     </el-drawer>
+
+    <!-- 图片预览弹窗 -->
+    <el-dialog
+      :visible.sync="previewVisible"
+      width="400px"
+      title="标签图片"
+      :close-on-click-modal="true"
+      append-to-body
+    >
+      <div style="text-align: center;">
+        <img :src="previewImageUrl" style="max-width: 100%; max-height: 70vh;" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { selfUseApi, myApi, dictionaryApi } from '@/api';
 import request from '@/utils/request';
+import { Message } from 'element-ui';
 
 export default {
   name: 'SelfUsePage',
@@ -221,10 +240,12 @@ export default {
       currentPage: 1,
       pageSize: 10,
       totalCount: 0,
+      total: 0,
       tableData: [],
       originalTableData: [],
 
       drawerVisible: false,
+      isDetailMode: false,
       addForm: {
         type: '',
         facility: '',
@@ -251,7 +272,10 @@ export default {
       loading: false,
       drawerLoading: false,
       // 处置类型选项
-      disposeTypeOptions: []
+      disposeTypeOptions: [],
+      // 预览图片
+      previewImageUrl: '',
+      previewVisible: false
     }
   },
   computed: {
@@ -265,10 +289,6 @@ export default {
     // 初始化数据
     this.fetchSelfUseData();
     this.fetchFacilityOptions();
-    this.fetchOperatorOptions();
-    this.fetchOutOperatorOptions();
-    this.fetchTransportOperatorOptions();
-    this.fetchDisposeTypeOptions();
   },
   methods: {
     // 获取自行利用处置数据
@@ -303,7 +323,7 @@ export default {
           dateStr = dateStr.split('T')[0];
         }
         params.filter.push({
-          name: "createTime",
+          name: "zxlyczsj",
           value: dateStr,
           type: "LIKE"
         });
@@ -327,9 +347,9 @@ export default {
         });
       }
       
-      console.log('自行利用查询请求参数:', params);
+
       selfUseApi.selfUsepage(params).then(res => {
-        console.log('自行利用查询响应结果:', res);
+
         const data = res.result || res.data;
         if (data) {
           this.tableData = (data.records || []).map(item => {
@@ -360,8 +380,8 @@ export default {
               transportAgent: item.ysbmjbr || '-',
               type: item.zxlyczlx || '',
               typeValue: item.zxlyczlxValue || '',
-              status: item.statusReport !== undefined ? (item.statusReport === 1 ? '已申报' : '未申报') : (item.status === 1 ? '已申报' : '未申报'),
-              statusReport: item.statusReport !== undefined ? item.statusReport : (item.status || 0),
+              status: item.statusReport === 1 ? '已申报' : '未申报',
+              statusReport: item.statusReport || 0,
               createTime: item.createdTime || ''
             };
           });
@@ -369,7 +389,7 @@ export default {
           this.total = data.total || 0;
         }
       }).catch(err => {
-        console.error('获取自行利用处置数据失败', err);
+
         this.$message.error('获取数据失败，请重试');
       }).finally(() => {
         this.loading = false;
@@ -378,28 +398,41 @@ export default {
     
     // 获取设施选项
     fetchFacilityOptions() {
-      // 使用正确的接口获取设施选项数据，payload为空对象
-      myApi.dispositionPage({}).then(res => {
-        console.log('获取设施选项响应:', res);
-        const data = res.result || res.data;
-        if (data) {
-          console.log('设施数据:', data.records);
-          // 从后端获取设施选项
-          this.facilityOptions = (data.records || []).map(item => ({
-            label: item.ssbm,
-            value: item.zxlyczsstybh,
-            id: item.id
-          }));
-          
-          // 将设施选项转换为标签页数据
-          this.tabs = (data.records || []).map(item => ({
-            label: item.ssbm,
-            value: item.zxlyczsstybh
-          }));
-          console.log('标签页数据:', this.tabs);
-        }
-      }).catch(err => {
-        console.error('获取设施选项失败', err);
+      return new Promise((resolve, reject) => {
+        // 使用正确的接口获取设施选项数据，payload为空对象
+        myApi.dispositionPage({}).then(res => {
+
+          const data = res.result || res.data;
+          if (data) {
+
+            // 从后端获取设施选项
+            this.facilityOptions = (data.records || []).map(item => ({
+              label: item.ssbm,
+              value: item.zxlyczsstybh,
+              id: item.id
+            }));
+            
+            // 将设施选项转换为标签页数据
+            const uniqueTabs = [];
+            const seenValues = new Set();
+            (data.records || []).forEach(item => {
+              const value = item.zxlyczsstybh;
+              if (!seenValues.has(value)) {
+                seenValues.add(value);
+                uniqueTabs.push({
+                  label: item.ssbm,
+                  value: value
+                });
+              }
+            });
+            this.tabs = uniqueTabs;
+
+          }
+          resolve();
+        }).catch(err => {
+
+          resolve(); // 即使失败也继续执行
+        });
       });
     },
     
@@ -426,18 +459,18 @@ export default {
           type: "EQ"
         }]
       }).then(res => {
-        console.log('获取经办人选项响应:', res);
+
         const data = res.result || res.data;
         if (data) {
-          console.log('经办人数据:', data.records);
+
           this.operatorOptions = (data.records || []).map(item => ({
             label: item.operatorName,
             value: item.operatorName
           }));
-          console.log('经办人选项:', this.operatorOptions);
+
         }
       }).catch(err => {
-        console.error('获取经办人选项失败', err);
+
       });
     },
     
@@ -451,18 +484,18 @@ export default {
           type: "EQ"
         }]
       }).then(res => {
-        console.log('获取出库部门经办人选项响应:', res);
+
         const data = res.result || res.data;
         if (data) {
-          console.log('出库部门经办人数据:', data.records);
+
           this.outOperatorOptions = (data.records || []).map(item => ({
             label: item.operatorName,
             value: item.operatorName
           }));
-          console.log('出库部门经办人选项:', this.outOperatorOptions);
+
         }
       }).catch(err => {
-        console.error('获取出库部门经办人选项失败', err);
+
       });
     },
     
@@ -476,44 +509,47 @@ export default {
           type: "EQ"
         }]
       }).then(res => {
-        console.log('获取运送部门经办人选项响应:', res);
+
         const data = res.result || res.data;
         if (data) {
-          console.log('运送部门经办人数据:', data.records);
+
           this.transportOperatorOptions = (data.records || []).map(item => ({
             label: item.operatorName,
             value: item.operatorName
           }));
-          console.log('运送部门经办人选项:', this.transportOperatorOptions);
+
         }
       }).catch(err => {
-        console.error('获取运送部门经办人选项失败', err);
+
       });
     },
     
     // 获取处置类型选项
     fetchDisposeTypeOptions() {
-      // 使用正确的接口获取处置类型选项数据
-      dictionaryApi.dictionaryItemPage({ 
-        filter: [{
-          name: "groupId",
-          value: 1021,
-          type: "EQ"
-        }]
-      }).then(res => {
-        console.log('获取处置类型选项响应:', res);
-        const data = res.result || res.data;
-        if (data) {
-          console.log('处置类型数据:', data.records);
-          // 从后端获取处置类型选项
-          this.disposeTypeOptions = (data.records || []).map(item => ({
-            label: item.zdxz,
-            value: item.zdxbm
-          }));
-          console.log('处置类型选项:', this.disposeTypeOptions);
-        }
-      }).catch(err => {
-        console.error('获取处置类型选项失败', err);
+      return new Promise((resolve, reject) => {
+        // 使用正确的接口获取处置类型选项数据
+        dictionaryApi.dictionaryItemPage({ 
+          filter: [{
+            name: "groupId",
+            value: 1021,
+            type: "EQ"
+          }]
+        }).then(res => {
+
+          const data = res.result || res.data;
+          if (data) {
+
+            // 从后端获取处置类型选项
+            this.disposeTypeOptions = (data.records || []).map(item => ({
+              label: item.zdxz,
+              value: item.zdxbm
+            }));
+
+          }
+          resolve();
+        }).catch(err => {
+          reject(err);
+        });
       });
     },
     
@@ -551,25 +587,24 @@ export default {
         });
       }
       
-      console.log('关联添加查询请求参数:', params);
+
       request.post('/program/production/page', params).then(res => {
-        console.log('关联添加查询响应结果:', res);
+
         const data = res.result || res.data;
         if (data) {
           this.associateData = (data.records || []).map(item => {
-            const production = item.production || {};
-            const label = production.label || {};
+            const label = item.label || {};
             const uploadFileList = label.uploadFileList || [];
             const uploadFile = uploadFileList[0] || {};
             
             return {
-              id: Number(item.id || production.id),
-              dispositionInfoId: item.dispositionInfoId || production.dispositionInfoId || '',
-              prodNo: item.cstzbm || item.zcsstybh || item.scsstybh || item.scksbh || production.scsstybh || item.id || '-',
-              wasteName: production.fwmc || item.fwmc || '-',
-              wasteCode: production.fwdm || item.fwdm || '-',
-              digitalId: production.szsbm || item.szsbm || '-',
-              amount: production.csl || item.csl || 0,
+              id: Number(item.id),
+              dispositionInfoId: item.dispositionInfoId || '',
+              prodNo: item.cstzbm || item.zcsstybh || item.scsstybh || item.scksbh || '-',
+              wasteName: item.fwmc || '-',
+              wasteCode: item.fwdm || '-',
+              digitalId: item.szsbm || '-',
+              amount: item.csl || 0,
               urlPath: uploadFile.urlPath || '',
               urlHttp: uploadFile.urlHttp || ''
             };
@@ -577,7 +612,7 @@ export default {
           this.drawerTotal = data.total || 0;
         }
       }).catch(err => {
-        console.error('获取关联数据失败', err);
+
         this.$message.error('获取关联数据失败，请重试');
       }).finally(() => {
         this.drawerLoading = false;
@@ -605,6 +640,12 @@ export default {
       this.fetchSelfUseData();
     },
     
+    // 关闭抽屉
+    handleDrawerClose() {
+      this.isDetailMode = false;
+      this.drawerVisible = false;
+    },
+    
     // 分页切换
     handleCurrentChange(val) {
       this.currentPage = val;
@@ -622,7 +663,7 @@ export default {
             this.$message.error(res.message || '删除失败');
           }
         }).catch(err => {
-          console.error('删除失败', err);
+
           this.$message.error('删除失败，请重试');
         });
       });
@@ -643,37 +684,296 @@ export default {
           this.$message.error(res.message || '申报失败');
         }
       }).catch(err => {
-        console.error('申报失败', err);
+
         this.$message.error('申报失败，请重试');
       });
     },
     
     // 撤销
     handleCancel(row) {
-      selfUseApi.selfCancelData({ id: row.id }).then(res => {
-        if (res.success) {
-          this.$message.success('撤销成功');
-          this.fetchSelfUseData();
-        } else {
-          this.$message.error(res.message || '撤销失败');
+      this.$prompt('请输入撤销备注', '填写撤销备注', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入',
+        inputValidator: (value) => {
+          if (!value || value.trim() === '') {
+            return '请填写撤销备注';
+          }
+          return true;
+        }
+      }).then(({ value }) => {
+
+        selfUseApi.selfCancelData({
+          bz: value,
+          relId: row.id
+        }).then(res => {
+          if (res.success) {
+            this.$message.success('撤销成功');
+            this.fetchSelfUseData();
+          } else {
+            this.$message.error(res.message || '撤销失败');
+          }
+        }).catch(err => {
+
+          this.$message.error('撤销失败：' + (err.message || '网络错误，请重试'));
+        });
+      }).catch(() => {});
+    },
+    
+    // 查看标签
+    viewLabel(row) {
+      // 从row对象的顶层获取urlPath和urlHttp（已经在获取关联数据时提取）
+      const urlPath = row.urlPath ? row.urlPath.trim() : '';
+      const urlHttp = row.urlHttp ? row.urlHttp.trim() : '';
+      
+      if (urlPath && urlHttp) {
+        let domain = urlPath;
+        if (!domain.startsWith('http')) {
+          domain = 'http://' + domain;
+        }
+        domain = domain.replace(/\/+$/, '');
+        
+        let path = urlHttp;
+        if (!path.startsWith('/')) {
+          path = '/' + path;
+        }
+        
+        this.previewImageUrl = domain + path;
+        this.previewVisible = true;
+      } else {
+        Message.warning('标签信息不完整');
+      }
+    },
+    
+
+    
+    // 详情
+    async handleDetail(row) {
+      // 先获取处置类型选项，确保详情能正确显示
+      await this.fetchDisposeTypeOptions();
+
+      selfUseApi.selfDetails(row.id).then(res => {
+
+        const data = res.result || res.data;
+
+        if (data) {
+          this.addForm = {
+            type: data.zxlyczlx || '',
+            facility: data.zxlyczsstybh || '',
+            id: data.dispositionInfoId || '',
+            disposeAgent: data.zxlyczbmjbr || '',
+            outAgent: data.ckbmjbr || '',
+            transportAgent: data.ysbmjbr || ''
+          };
+          this.isDetailMode = true;
+          
+          // 先显示抽屉
+          this.drawerVisible = true;
+          
+          // 延迟获取关联数据，确保抽屉已经显示
+          setTimeout(() => {
+            // 清空关联数据
+            this.associateData = [];
+            this.drawerTotal = 0;
+            this.selectedRows = [];
+            
+            // 检查并处理生产关联数据
+            if (data.selfDisposeRelProductionList && data.selfDisposeRelProductionList.length > 0) {
+
+              // 从selfDisposeRelProductionList中提取ID
+              const productionIds = data.selfDisposeRelProductionList.map(item => item.productionId || item.id);
+
+              this.fetchProductionAssociateData(productionIds);
+            }
+            
+            // 检查并处理存储关联数据
+            if (data.selfDisposeRelOutStorageList && data.selfDisposeRelOutStorageList.length > 0) {
+
+              
+              // 检查是否有productionVo字段
+              const hasProductionVo = data.selfDisposeRelOutStorageList.some(item => item.productionVo);
+
+              
+              if (hasProductionVo) {
+                // 直接从productionVo提取数据
+
+                const storageData = data.selfDisposeRelOutStorageList.map(item => {
+                  const production = item.productionVo || {};
+                  const label = production.label || {};
+                  const uploadFileList = label.uploadFileList || [];
+                  const uploadFile = uploadFileList[0] || {};
+                  
+                  return {
+                    id: Number(production.id || item.id),
+                    dispositionInfoId: item.dispositionInfoId || production.dispositionInfoId || '',
+                    prodNo: production.cstzbm || production.zcsstybh || production.scsstybh || production.scksbh || item.id || '-',
+                    wasteName: production.fwmc || '-',
+                    wasteCode: production.fwdm || '-',
+                    digitalId: production.szsbm || '-',
+                    amount: production.csl || 0,
+                    urlPath: uploadFile.urlPath || '',
+                    urlHttp: uploadFile.urlHttp || ''
+                  };
+                });
+
+                
+                // 合并到关联数据中
+                this.associateData = [...this.associateData, ...storageData];
+                this.drawerTotal = this.associateData.length;
+                
+                // 在详情模式下，自动选中所有关联数据
+                if (this.isDetailMode) {
+                  this.selectedRows = [...this.associateData];
+
+                }
+              } else {
+                // 从selfDisposeRelOutStorageList中提取ID
+                const storageIds = data.selfDisposeRelOutStorageList.map(item => item.outStorageId || item.storageId || item.id);
+
+                this.fetchStorageAssociateData(storageIds);
+              }
+            }
+            
+            // 如果没有关联数据
+            if ((!data.selfDisposeRelProductionList || data.selfDisposeRelProductionList.length === 0) && 
+                (!data.selfDisposeRelOutStorageList || data.selfDisposeRelOutStorageList.length === 0)) {
+
+            }
+          }, 100);
         }
       }).catch(err => {
-        console.error('撤销失败', err);
-        this.$message.error('撤销失败，请重试');
+
+        this.$message.error('获取详情失败，请重试');
       });
     },
     
-    // 详情
-    handleDetail(row) {
-      selfUseApi.selfDetails(row.id).then(res => {
-        const data = res.result || res.data;
-        if (data) {
-          this.$message.info(`详情ID: ${row.id}`);
-          // 这里可以添加详情抽屉逻辑
+    // 获取生产关联数据
+    fetchProductionAssociateData(idList) {
+      this.drawerLoading = true;
+      
+      // 构建请求参数，使用ID列表查询
+      const params = {
+        filter: [
+          {
+            name: "id",
+            value: idList,
+            type: "IN"
+          }
+        ]
+      };
+      
+
+      request.post('/program/production/page', params).then(res => {
+
+        // 确保正确获取数据
+        const result = res.result || res.data || {};
+
+        if (result) {
+
+          // 确保records是数组
+          const records = Array.isArray(result.records) ? result.records : [];
+
+          const productionData = records.map(item => {
+            // 修改这里：直接使用 item.label，而不是 item.production.label
+            const label = item.label || {};
+            const uploadFileList = label.uploadFileList || [];
+            const uploadFile = uploadFileList[0] || {};
+            
+            return {
+              id: Number(item.id),
+              dispositionInfoId: item.dispositionInfoId || '',
+              prodNo: item.cstzbm || item.zcsstybh || item.scsstybh || item.scksbh || '-',
+              wasteName: item.fwmc || '-',
+              wasteCode: item.fwdm || '-',
+              digitalId: item.szsbm || '-',
+              amount: item.csl || 0,
+              urlPath: uploadFile.urlPath || '',
+              urlHttp: uploadFile.urlHttp || ''
+            };
+          });
+
+          
+          // 合并到关联数据中
+          this.associateData = [...this.associateData, ...productionData];
+          this.drawerTotal = this.associateData.length;
+          
+          // 在详情模式下，自动选中所有关联数据
+          if (this.isDetailMode) {
+            this.selectedRows = [...this.associateData];
+
+          }
         }
       }).catch(err => {
-        console.error('获取详情失败', err);
-        this.$message.error('获取详情失败，请重试');
+
+        this.$message.error('获取生产关联数据失败，请重试');
+      }).finally(() => {
+        this.drawerLoading = false;
+
+      });
+    },
+    
+    // 获取存储关联数据
+    fetchStorageAssociateData(idList) {
+      this.drawerLoading = true;
+      
+      // 构建请求参数，使用ID列表查询
+      const params = {
+        filter: [
+          {
+            name: "id",
+            value: idList,
+            type: "IN"
+          }
+        ]
+      };
+      
+
+      request.post('/program/storage/page', params).then(res => {
+
+        // 确保正确获取数据
+        const result = res.result || res.data || {};
+
+        if (result) {
+
+          // 确保records是数组
+          const records = Array.isArray(result.records) ? result.records : [];
+
+          const storageData = records.map(item => {
+            // 修改这里：直接使用 item.label，而不是 storage.label
+            const label = item.label || {};
+            const uploadFileList = label.uploadFileList || [];
+            const uploadFile = uploadFileList[0] || {};
+            
+            return {
+              id: Number(item.id),
+              dispositionInfoId: item.dispositionInfoId || '',
+              prodNo: item.cstzbm || item.zcsstybh || item.scsstybh || item.scksbh || '-',
+              wasteName: item.fwmc || '-',
+              wasteCode: item.fwdm || '-',
+              digitalId: item.szsbm || '-',
+              amount: item.csl || 0,
+              urlPath: uploadFile.urlPath || '',
+              urlHttp: uploadFile.urlHttp || ''
+            };
+          });
+
+          
+          // 合并到关联数据中
+          this.associateData = [...this.associateData, ...storageData];
+          this.drawerTotal = this.associateData.length;
+          
+          // 在详情模式下，自动选中所有关联数据
+          if (this.isDetailMode) {
+            this.selectedRows = [...this.associateData];
+
+          }
+        }
+      }).catch(err => {
+
+        this.$message.error('获取存储关联数据失败，请重试');
+      }).finally(() => {
+        this.drawerLoading = false;
+
       });
     },
 
@@ -690,14 +990,7 @@ export default {
       this.selectedRows = [];
       this.drawerCurrentPage = 1;
       
-      // 在打开抽屉时获取所有需要的数据
-      this.fetchDisposeTypeOptions();
-      this.fetchFacilityOptions();
-      this.fetchOperatorOptions();
-      this.fetchOutOperatorOptions();
-      this.fetchTransportOperatorOptions();
-      
-      // 先打开抽屉，等用户选择设施后再获取关联数据
+      // 先打开抽屉，等用户选择时再获取数据
       this.drawerVisible = true;
     },
     
@@ -756,7 +1049,7 @@ export default {
             });
           }
         }).catch(err => {
-          console.error('获取所有数据失败', err);
+
           this.$message.error('获取所有数据失败，请重试');
         }).finally(() => {
           this.drawerLoading = false;
@@ -804,7 +1097,7 @@ export default {
           this.$message.error(res.message || '保存失败');
         }
       }).catch(err => {
-        console.error('保存失败', err);
+
         this.$message.error('保存失败，请重试');
       });
     },
@@ -834,7 +1127,7 @@ export default {
           this.$message.error(res.message || '新增失败');
         }
       }).catch(err => {
-        console.error('新增失败', err);
+
         this.$message.error('新增失败，请重试');
       });
     },
@@ -969,6 +1262,20 @@ export default {
   border-color: #13B63A !important;
 }
 
+/* 预览图片样式 */
+.preview-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
 .query-buttons {
   display: flex;
   gap: 10px;
@@ -1057,8 +1364,8 @@ export default {
   box-shadow: none !important;
 }
 
-.search-input { width: 220px; }
-.search-input :deep(.el-input__inner) { border-radius: 16px; }
+.search-input { width: 200px; }
+.search-input :deep(.el-input__inner) { background-color: #F2F3F5; border: none; height: 32px; line-height: 32px; border-radius: 16px; }
 .btn-add { background-color: #13B63A !important; border: none; height: 32px; }
 
 .table-container { margin-bottom: 16px; }

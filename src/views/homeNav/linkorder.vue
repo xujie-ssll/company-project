@@ -1815,7 +1815,6 @@ export default {
 .btn-tag-view { background-color: #13B63A !important; border-color: #13B63A !important; color: white !important; padding: 6px 15px !important; }
 
 
-/* ★★★ 取消弹窗死高度，压紧行高，完全防止出现浏览器外层滚动条 ★★★ */
 :deep(.link-tag-dialog) {
   border-radius: 8px;
   margin-top: 6vh !important; 
