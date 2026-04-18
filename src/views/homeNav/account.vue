@@ -26,7 +26,7 @@
       <div class="table-container">
         <el-table 
           v-loading="loading"
-          :data="paginatedData" 
+          :data="tableData"     <!-- 直接使用 tableData，不需要 paginatedData -->
           style="width: 100%" 
           class="custom-table" 
           height="100%"
@@ -89,12 +89,6 @@ export default {
       };
       return labelMap[this.activeAccountTab];
     },
-    // 分页数据
-    paginatedData() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
-      const endIndex = startIndex + this.pageSize;
-      return this.tableData.slice(startIndex, endIndex);
-    }
   },
   methods: {
     handleTabClick() {
@@ -103,16 +97,31 @@ export default {
     },
     handleCurrentChange(val) {
       this.currentPage = val;
+      this.fetchAccountData();   // 加上这一行
     },
     // 获取台账数据
     fetchAccountData() {
       this.loading = true;
+
+      // 构建符合后端要求的请求体（无查询条件，仅分页+排序）
       const params = {
         current: this.currentPage,
         size: this.pageSize,
+        filter: [],               // 空数组，无查询条件
         sorted: [
-          { name: "createTime", type: "DESC" }
-        ]
+          { name: "createTime", type: "DESC", alias: "" }
+        ],
+        wrapper: {
+          entity: {},             // 实体条件为空
+          expression: {
+            normal: [],
+            groupBy: [],
+            having: [],
+            orderBy: []
+          },
+          sqlSelect: "",
+          customSqlSegment: ""
+        }
       };
       
       let apiMethod;
@@ -137,9 +146,10 @@ export default {
       }
       
       apiMethod(params).then(res => {
+        // 根据你的实际返回结构调整（常见：res.data.records / res.result.records）
         const data = res.result || res.data;
         if (data) {
-          this.tableData = data.records || [];
+          this.tableData = data.records || [];   // 后端返回的当前页记录
           this.totalCount = data.total || 0;
         }
       }).catch(err => {
