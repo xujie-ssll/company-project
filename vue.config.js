@@ -1,4 +1,5 @@
 const { defineConfig } = require('@vue/cli-service')
+const webpack = require('webpack')
 
 module.exports = defineConfig({
   // 基本路径配置
@@ -10,8 +11,8 @@ module.exports = defineConfig({
   // 开发服务器配置（代理）
   devServer: {
     open: true,
-    // host: 'localhost',
-    // port: 8080,
+    host: 'localhost',
+    port: 8080,
     proxy: {
       '/api': {
         target: 'http://192.168.1.198:8001',
@@ -39,12 +40,17 @@ module.exports = defineConfig({
         "crypto": false,
         "stream": false, // 新增：解决 stream 模块错误
         "util": false,
-        "buffer": false,
-        "process": false
+        "buffer": false
       }
     },
     // 禁用 Webpack 对 Node.js 模块的警告
-    ignoreWarnings: [/Failed to parse source map/, /Can't resolve/]
+    ignoreWarnings: [/Failed to parse source map/, /Can't resolve/],
+    plugins: [
+      new webpack.ProvidePlugin({
+        process: 'process/browser',
+        Buffer: ['buffer', 'Buffer']
+      })
+    ]
   },
 
   // 强制转译 serialport 相关依赖

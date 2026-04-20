@@ -6,10 +6,14 @@
       <div class="title-container">
         <div class="title-row">
           <span class="title-text">{{ defaultData.factoryName }}</span>
-          <el-button icon="el-icon-sort" style="transform: rotate(90deg);" class="switch-icon"></el-button>
+          <el-button
+            icon="el-icon-sort"
+            style="transform: rotate(90deg)"
+            class="switch-icon"
+          ></el-button>
         </div>
       </div>
-      
+
       <!-- 第二个容器：卡片和图片的左右布局 -->
       <div class="cards-image-container">
         <!-- 左侧容器：存放卡片且固定 -->
@@ -31,7 +35,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 下容器 -->
     <div class="lower-container">
       <div class="query-bar">
@@ -64,17 +68,21 @@
           <div class="query-item">
             <label>危险废物</label>
             <el-select v-model="wasteType" placeholder="请选择" class="query-select">
-              <el-option label="工业污泥及格栅垃圾" value="工业污泥及格栅垃圾" />
-              <el-option label="感染性废物" value="感染性废物" />
-              <el-option label="废液体催化剂" value="废液体催化剂" />
-              <el-option label="经鉴别确定为HW36石棉废物" value="经鉴别确定为HW36石棉废物" />
-              <el-option label="药物性废物" value="药物性废物" />
-              <el-option label="化学性废物" value="化学性废物" />
-              <el-option label="损伤性废物" value="损伤性废物" />
+              <el-option
+                v-for="option in wasteOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
             </el-select>
           </div>
           <div class="query-buttons">
-            <el-button type="primary" icon="el-icon-search" class="query-btn" @click="handleQuery">
+            <el-button
+              type="primary"
+              icon="el-icon-search"
+              class="query-btn"
+              @click="handleQuery"
+            >
               <span> 查询</span>
             </el-button>
             <el-button class="reset-btn" icon="el-icon-refresh" @click="handleReset">
@@ -82,9 +90,10 @@
             </el-button>
           </div>
         </div>
-        
+
         <div class="divider-line"></div>
-        
+
+        <!-- 按钮组 -->
         <div class="batch-search-area">
           <button class="batch-print-btn" @click="handleBatchPrint">批量打印</button>
           <div class="search-box">
@@ -92,8 +101,7 @@
               v-model="searchKeyword"
               placeholder="搜索"
               class="custom-search-input"
-              @keyup.enter.native="handleSearch"
-              @blur="handleSearch"
+              @keyup.enter="handleSearch"
             >
               <template slot="append">
                 <el-button icon="el-icon-search" @click="handleSearch"></el-button>
@@ -102,27 +110,51 @@
           </div>
         </div>
       </div>
-      
+
+      <!-- 表格容器 -->
       <div class="table-container">
-        <el-table :data="paginatedData" row-key="id" style="width: 100%" class="nowrap-table" height="230px" @selection-change="handleSelectionChange" ref="inventoryTable">
-          <el-table-column type="selection" width="55" :reserve-selection="true"></el-table-column>
+        <el-table
+          :data="paginatedData"
+          row-key="id"
+          style="width: 100%"
+          class="nowrap-table"
+          height="230px"
+          v-loading="loading"
+          @selection-change="handleSelectionChange"
+          ref="inventoryTable"
+        >
+          <el-table-column
+            type="selection"
+            width="55"
+            :reserve-selection="true"
+          ></el-table-column>
           <el-table-column prop="name" label="危废名称"></el-table-column>
           <el-table-column prop="code" label="危废代码"></el-table-column>
-          <el-table-column prop="digitalId" label="数字识别码" width="200"></el-table-column>
+          <el-table-column
+            prop="digitalId"
+            label="数字识别码"
+            width="200"
+          ></el-table-column>
           <el-table-column prop="amount" label="产生量"></el-table-column>
           <el-table-column prop="unit" label="计量单位"></el-table-column>
           <el-table-column label="操作" width="180">
             <template slot-scope="scope">
               <div class="operation-buttons">
-                <el-button type="primary" size="small" @click="handleTag(scope.row)">标签</el-button>
-                <el-button type="warning" size="small" @click="handleAdjust(scope.row)">调整</el-button>
-                <el-button type="success" size="small" @click="handlePrint(scope.row)">打印</el-button>
+                <el-button type="primary" size="small" @click="handleTag(scope.row)"
+                  >标签</el-button
+                >
+                <el-button type="warning" size="small" @click="handleAdjust(scope.row)"
+                  >调整</el-button
+                >
+                <el-button type="success" size="small" @click="handlePrint(scope.row)"
+                  >打印</el-button
+                >
               </div>
             </template>
           </el-table-column>
         </el-table>
       </div>
-      
+
       <!-- 分页 -->
       <div class="pagination">
         <span>已选{{ selectedCount }}条 共{{ totalCount }}条</span>
@@ -136,15 +168,20 @@
         />
       </div>
     </div>
-    
+
     <!-- 标签打印弹窗 -->
     <div v-show="showPrintDialog" class="print-dialog">
       <div class="print-dialog-content">
         <div class="print-dialog-header">
           <h3>标签打印</h3>
-          <button class="print-dialog-close" @click="!isPrinting && (showPrintDialog = false)">×</button>
+          <button
+            class="print-dialog-close"
+            @click="!isPrinting && (showPrintDialog = false)"
+          >
+            ×
+          </button>
         </div>
-        
+
         <!-- 打印设置界面 -->
         <div v-show="!isPrinting && !printSuccess" class="print-dialog-body">
           <div class="print-size-option">
@@ -160,23 +197,28 @@
             <label for="size-200">200mm×200mm</label>
           </div>
         </div>
-        
+
         <!-- 打印加载界面 -->
         <div v-show="isPrinting" class="print-loading">
           <div class="loading-bar">
-            <div class="loading-progress" :style="{ width: (printProgress / totalPrintItems) * 100 + '%' }"></div>
+            <div
+              class="loading-progress"
+              :style="{ width: (printProgress / totalPrintItems) * 100 + '%' }"
+            ></div>
           </div>
-          <div class="loading-text">Loading {{ printProgress }}/{{ totalPrintItems }}...</div>
+          <div class="loading-text">
+            Loading {{ printProgress }}/{{ totalPrintItems }}...
+          </div>
           <div class="printing-status">打印中</div>
         </div>
-        
+
         <!-- 打印成功界面 -->
         <div v-show="printSuccess" class="print-success">
           <div class="success-icon">✓</div>
           <div class="success-text">打印完成</div>
           <button class="close-success-btn" @click="showPrintDialog = false">关闭</button>
         </div>
-        
+
         <div v-show="!isPrinting && !printSuccess" class="print-dialog-footer">
           <button class="start-print-btn" @click="startPrint">开始打印</button>
         </div>
@@ -186,14 +228,17 @@
 </template>
 
 <script>
+import { inventoryApi } from "@/api/index";
+import { Message } from "element-ui";
+
 export default {
-  name: 'InventoryPage',
+  name: "InventoryPage",
   data() {
     return {
-      searchKeyword: '', // 用于绑定搜索框的值
-      productionDate: '',
-      inboundDate: '',
-      wasteType: '',
+      searchKeyword: "", // 用于绑定搜索框的值
+      productionDate: "",
+      inboundDate: "",
+      wasteType: "",
       selectedCount: 0,
       totalCount: 0,
       selectAll: false,
@@ -203,36 +248,27 @@ export default {
       printProgress: 0,
       totalPrintItems: 0,
       printSuccess: false,
-      printSize: '100',
+      printSize: "100",
       searchTimer: null,
+      loading: false,
       defaultData: {
-        factoryName: '东川污水处理厂',
-        storageVolume: '23.6',
-        totalStorageVolume: '100.4'
+        factoryName: "东川污水处理厂",
+        storageVolume: "23.6",
+        totalStorageVolume: "100.4",
       },
-      tableData: [
-        { name: '废抹布', code: '7631-99-4', id: '1', digitalId: '99999999999999990044149001', amount: 5, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '活性炭', code: '7631-99-4', id: '2', digitalId: '99999999999999990044149001', amount: 100, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '3', digitalId: '99999999999999990044149001', amount: 4, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '4', digitalId: '99999999999999990044149001', amount: 4, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '5', digitalId: '99999999999999990044149001', amount: 3, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '6', digitalId: '99999999999999990044149001', amount: 12, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' }
-      ],
-      // 原始数据
-      originalTableData: [
-        { name: '废抹布', code: '7631-99-4', id: '1', digitalId: '99999999999999990044149001', amount: 5, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '活性炭', code: '7631-99-4', id: '2', digitalId: '99999999999999990044149001', amount: 100, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '3', digitalId: '99999999999999990044149001', amount: 4, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '4', digitalId: '99999999999999990044149001', amount: 4, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '5', digitalId: '99999999999999990044149001', amount: 3, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' },
-        { name: '废油漆桶', code: '7631-99-4', id: '6', digitalId: '99999999999999990044149001', amount: 12, unit: '吨', productionDate: '2026-04-01', inboundDate: '2026-04-02' }
-      ],
+      tableData: [],
+      originalTableData: [],
+      wasteOptions: [],
       // 当前页码
       currentPage: 1,
       dialogVisible: false,
-      dialogTitle: '',
-      currentItem: null
-    }
+      dialogTitle: "",
+      currentItem: null,
+    };
+  },
+  mounted() {
+    // 初始化时获取库存列表数据
+    this.fetchInventoryData();
   },
   // 计算属性：分页数据
   computed: {
@@ -241,17 +277,18 @@ export default {
       const startIndex = (this.currentPage - 1) * 6;
       const endIndex = startIndex + 6;
       return this.tableData.slice(startIndex, endIndex);
-    }
+    },
   },
   watch: {
     selectedItems: {
       handler(newVal) {
         this.selectedCount = newVal.length;
         // 当选中项数量变化时，更新全选状态
-        this.selectAll = newVal.length === this.tableData.length && this.tableData.length > 0;
+        this.selectAll =
+          newVal.length === this.tableData.length && this.tableData.length > 0;
       },
       deep: true,
-      immediate: true
+      immediate: true,
     },
     tableData: {
       handler(newVal) {
@@ -260,41 +297,95 @@ export default {
         this.selectAll = this.selectedItems.length === newVal.length && newVal.length > 0;
       },
       deep: true,
-      immediate: true
-    }
+      immediate: true,
+    },
   },
   methods: {
-    handleTag(item) {
-      this.currentItem = item
-      this.dialogTitle = '标签操作'
-      this.dialogVisible = true
-    },
-    handleAdjust(item) {
-      this.currentItem = item
-      this.dialogTitle = '调整操作'
-      this.dialogVisible = true
-    },
-    handlePrint(item) {
-      this.currentItem = item
-      this.showPrintDialog = true
-    },
-    handleBatchPrint() {
+    // 获取库存列表数据
+    fetchInventoryData() {
+      this.loading = true;
 
+      const params = {page: 1,size: 100,};
+
+      // 调用库存列表接口获取数据
+      inventoryApi
+        .inventoryPage(params)
+        .then((res) => {
+          const data = res.result || res.data;
+          
+          if (data) {
+            this.originalTableData = (data.records || data.list || []).map((item) => {
+              return {
+                id: item.id || item.labelId || "",
+                name: item.name || item.fwmc || "-",
+                code: item.code || item.fwdm || "-",
+                digitalId: item.digitalId || item.szsbm || "-",
+                amount: item.amount || item.csl || 0,
+                unit: item.unit || item.jldw || "吨",
+                // 产生日期：支持多种字段格式
+                productionDate: item.productionDate || item.cssj || "",
+                // 入库日期：支持多种字段格式
+                inboundDate: item.inboundDate || item.rksj || "",
+                // 完整数据用于搜索
+                rawData: item,
+              };
+            });
+            this.wasteOptions = Array.from(
+              new Map(
+                this.originalTableData
+                  .filter((item) => item.name && item.name !== "-")//过滤掉没有名称或名称为 "-" 的数据
+                  .map((item) => [item.name, item])//将名称和数据映射为键值对
+              ).values()//提取所有值，返回对象数组
+            ).map((item) => ({
+              label: item.name,
+              value: item.name,
+            }));
+            this.tableData = [...this.originalTableData];
+            this.totalCount = this.originalTableData.length;
+            this.currentPage = 1;
+          }
+        })
+        .catch((err) => {
+          console.error("获取库存数据失败:", err);
+          Message.error("获取库存数据失败，请稍后重试");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    // 处理标签操作
+    handleTag(item) {
+      this.currentItem = item;
+      this.dialogTitle = "标签操作";
+      this.dialogVisible = true;
+    },
+    // 处理调整操作
+    handleAdjust(item) {
+      this.currentItem = item;
+      this.dialogTitle = "调整操作";
+      this.dialogVisible = true;
+    },
+    // 处理打印操作
+    handlePrint(item) {
+      this.currentItem = item;
+      this.showPrintDialog = true;
+    },
+    // 处理批量打印操作
+    handleBatchPrint() {
       if (this.selectedItems.length === 0) {
-        this.$message.warning('请选择要打印的项');
+        this.$message.warning("请选择要打印的项");
         return;
       }
       this.showPrintDialog = true;
     },
+    // 处理打印开始
     startPrint() {
-
-      
       // 显示加载状态
       this.isPrinting = true;
       this.printProgress = 0;
       this.totalPrintItems = this.selectedItems.length;
       this.printSuccess = false;
-      
+
       // 模拟打印过程
       const printInterval = setInterval(() => {
         this.printProgress += 1;
@@ -311,7 +402,7 @@ export default {
     toggleSelectAll(selection) {
       if (selection.length > 0) {
         // 全选：选中所有项的 id
-        this.selectedItems = this.tableData.map(item => item.id);
+        this.selectedItems = this.tableData.map((item) => item.id);
       } else {
         // 取消全选：清空选中项
         this.selectedItems = [];
@@ -319,12 +410,12 @@ export default {
     },
     handleCheckboxChange(selection, row) {
       // 更新选中项
-      this.selectedItems = selection.map(item => item.id);
+      this.selectedItems = selection.map((item) => item.id);
       this.selectedCount = this.selectedItems.length;
     },
     handleSelectionChange(selection) {
       // 处理表格选择变化
-      this.selectedItems = selection.map(item => item.id);
+      this.selectedItems = selection.map((item) => item.id);
       this.selectedCount = this.selectedItems.length;
     },
     handleCurrentChange(val) {
@@ -332,90 +423,155 @@ export default {
       this.currentPage = val;
       // 这里可以添加分页请求逻辑
     },
+    // 处理查询操作
     handleQuery() {
-      // 查询逻辑：根据产生日期、入库日期和危险废物类型过滤数据
+      // 查询逻辑：根据产生日期、入库日期、危险废物类型和搜索关键词过滤数据
       const { productionDate, inboundDate, wasteType, searchKeyword } = this;
-      
-      if (!productionDate && !inboundDate && !wasteType && !searchKeyword) {
-        this.$message.warning('请选择查询条件');
+
+      if (!productionDate && !inboundDate && !wasteType && !searchKeyword.trim()) {
+        this.$message.warning("请至少选择一个查询条件");
         return;
       }
-      
+
       // 根据条件过滤数据
-      this.tableData = this.originalTableData.filter(item => {
+      this.tableData = this.originalTableData.filter((item) => {
         let match = true;
-        
-        if (productionDate && item.productionDate !== productionDate) {
+
+        // 产生日期比较：比较日期部分（YYYY-MM-DD）
+        if (productionDate) {
+          const selectedDate = this.formatDate(productionDate);
+          const itemDate = item.productionDate ? item.productionDate.substring(0, 10) : "";
+          if (itemDate !== selectedDate) {
+            match = false;
+          }
+        }
+
+        // 入库日期比较：比较日期部分（YYYY-MM-DD）
+        if (inboundDate) {
+          const selectedDate = this.formatDate(inboundDate);
+          const itemDate = item.inboundDate ? item.inboundDate.substring(0, 10) : "";
+          if (itemDate !== selectedDate) {
+            match = false;
+          }
+        }
+
+        // 危险废物类型比较：支持模糊匹配和精确匹配
+        if (wasteType && !item.name.includes(wasteType) && item.name !== wasteType) {
           match = false;
         }
-        
-        if (inboundDate && item.inboundDate !== inboundDate) {
-          match = false;
+
+        // 搜索关键词：支持按危废名称、代码、数字识别码搜索
+        const keyword = searchKeyword.trim();
+        if (keyword) {
+          const matchesKeyword =
+            item.name.includes(keyword) ||
+            item.code.includes(keyword) ||
+            item.digitalId.includes(keyword);
+          if (!matchesKeyword) {
+            match = false;
+          }
         }
-        
-        if (wasteType && item.name !== wasteType) {
-          match = false;
-        }
-        
-        // 新增关键词搜索逻辑（匹配名称或代码）
-        if (searchKeyword && !item.name.includes(searchKeyword) && !item.code.includes(searchKeyword)) {
-          match = false;
-        }
-        
+
         return match;
       });
-      
-      // 重置选中项
+
+      // 重置选中项和页码
       this.selectedItems = [];
       this.selectedCount = 0;
       this.currentPage = 1;
+      this.$message.success(`查询成功，共找到 ${this.tableData.length} 条数据`);
+    },
+    // 格式化日期为 YYYY-MM-DD 格式
+    formatDate(date) {
+      if (!date) return "";
+      if (typeof date === "string") {
+        return date.substring(0, 10);
+      }
+      if (date instanceof Date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+      return "";
     },
     handleReset() {
       // 恢复原始数据
       this.tableData = [...this.originalTableData];
-      this.productionDate = '';
-      this.inboundDate = '';
-      this.wasteType = '';
-      this.searchKeyword = '';
+      this.productionDate = "";
+      this.inboundDate = "";
+      this.wasteType = "";
+      this.searchKeyword = "";
       this.selectedItems = [];
       this.selectedCount = 0;
       this.currentPage = 1;
-      
+
       // 清空表格的内置多选缓存
       this.$refs.inventoryTable && this.$refs.inventoryTable.clearSelection();
+      this.$message.success("已重置查询条件");
     },
-    
-    // 搜索功能
+
+    // 搜索功能：按危废名称、代码等关键词搜索
     handleSearch() {
       const keyword = this.searchKeyword.trim();
-      
+      const { productionDate, inboundDate, wasteType } = this;
+
+      // 防抖处理
       if (this.searchTimer) {
         clearTimeout(this.searchTimer);
       }
-      
+
       this.searchTimer = setTimeout(() => {
-        if (!keyword) {
-          this.tableData = [...this.originalTableData];
-        } else {
-          this.tableData = this.originalTableData.filter(item => {
+        let filteredData = this.originalTableData;
+
+        // 首先应用查询表格的条件
+        filteredData = filteredData.filter((item) => {
+          let match = true;
+
+          // 产生日期比较
+          if (productionDate) {
+            const selectedDate = this.formatDate(productionDate);
+            const itemDate = item.productionDate ? item.productionDate.substring(0, 10) : "";
+            if (itemDate !== selectedDate) {
+              match = false;
+            }
+          }
+
+          // 入库日期比较
+          if (inboundDate) {
+            const selectedDate = this.formatDate(inboundDate);
+            const itemDate = item.inboundDate ? item.inboundDate.substring(0, 10) : "";
+            if (itemDate !== selectedDate) {
+              match = false;
+            }
+          }
+
+          // 危险废物类型比较
+          if (wasteType && !item.name.includes(wasteType) && item.name !== wasteType) {
+            match = false;
+          }
+
+          return match;
+        });
+
+        // 然后应用搜索关键词
+        if (keyword) {
+          filteredData = filteredData.filter((item) => {
             return (
               item.name.includes(keyword) ||
               item.code.includes(keyword) ||
-              item.digitalId.includes(keyword) ||
-              item.amount.toString().includes(keyword) ||
-              item.unit.includes(keyword) ||
-              item.productionDate.includes(keyword) ||
-              item.inboundDate.includes(keyword)
+              item.digitalId.includes(keyword)
             );
           });
         }
-        
+
+        this.tableData = filteredData;
         this.totalCount = this.tableData.length;
         this.currentPage = 1;
       }, 300);
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -440,9 +596,9 @@ export default {
   line-height: 20px !important;
   letter-spacing: 0% !important;
   height: 24px !important;
-  background-color: #F2F3F5 !important;
+  background-color: #f2f3f5 !important;
   border: 1px solid transparent !important;
-  color: #1D2129 !important;
+  color: #1d2129 !important;
 }
 
 /* 当输入框聚焦时，背景变白并显示主题色边框，体验更好 */
@@ -451,14 +607,14 @@ export default {
 .query-select .el-input.is-active .el-input__inner,
 .query-select .el-input__inner:focus,
 .search-input:focus {
-  background-color: #FFFFFF !important;
-  border-color: #13B63A !important;
+  background-color: #ffffff !important;
+  border-color: #13b63a !important;
 }
 
 /* 针对禁用状态的输入框背景 */
 .custom-date-picker .el-input.is-disabled .el-input__inner {
-  background-color: #E5E6EB !important;
-  color: #86909C !important;
+  background-color: #e5e6eb !important;
+  color: #86909c !important;
 }
 
 /* ✅ ======= 修正后的图标样式 ======= */
@@ -580,11 +736,11 @@ export default {
 }
 
 .title-text {
-  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
   font-weight: 400;
   font-size: 20px;
   line-height: 24px;
-  color: #1E253D;
+  color: #1e253d;
 }
 
 /* 统计卡片 */
@@ -598,20 +754,20 @@ export default {
 }
 
 .stat-value {
-  font-family: 'DingTalk JinBuTi', 'Microsoft YaHei', sans-serif;
+  font-family: "DingTalk JinBuTi", "Microsoft YaHei", sans-serif;
   font-weight: 400;
   font-size: 24px;
   line-height: 24px;
-  color: #13B63A;
+  color: #13b63a;
   margin-bottom: 4px;
 }
 
 .stat-value.total {
-  color: #34C759;
+  color: #34c759;
 }
 
 .stat-label {
-  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 22px;
@@ -643,7 +799,7 @@ export default {
   width: 100%;
   position: relative;
   z-index: 1;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 24px;
   opacity: 1;
   margin-top: 35px;
@@ -658,9 +814,9 @@ export default {
 .query-table-title {
   font-size: 16px;
   font-weight: 500;
-  color: #1D2129;
+  color: #1d2129;
   margin-bottom: 10px;
-  font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+  font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 
 .query-row {
@@ -710,16 +866,16 @@ export default {
   line-height: 24px !important;
   font-size: 12px !important;
   padding: 0 35px !important;
-  background-color: #F2F3F5 !important;
-  border: 1px solid #E5E7EB !important;
+  background-color: #f2f3f5 !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 2px !important;
-  color: #1D2129 !important;
+  color: #1d2129 !important;
 }
 
 /* 日历输入框聚焦效果 */
 .custom-date-picker :deep(.el-input__inner:focus) {
-  background-color: #FFFFFF !important;
-  border-color: #13B63A !important;
+  background-color: #ffffff !important;
+  border-color: #13b63a !important;
 }
 
 /* 日历输入框图标样式 */
@@ -746,16 +902,16 @@ export default {
   line-height: 24px !important;
   font-size: 12px !important;
   padding: 0 12px !important;
-  background-color: #F2F3F5 !important;
-  border: 1px solid #E5E7EB !important;
+  background-color: #f2f3f5 !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 2px !important;
-  color: #1D2129 !important;
+  color: #1d2129 !important;
 }
 
 /* 下拉选择框聚焦效果 */
 .query-select :deep(.el-input__inner:focus) {
-  background-color: #FFFFFF !important;
-  border-color: #13B63A !important;
+  background-color: #ffffff !important;
+  border-color: #13b63a !important;
 }
 
 /* 下拉选择框图标样式 */
@@ -809,18 +965,20 @@ export default {
 }
 
 .query-buttons .query-btn {
-  background-color: #13B63A !important;
-  border-color: #13B63A !important;
+  background-color: #13b63a !important;
+  border-color: #13b63a !important;
   color: white !important;
 }
 
 .query-buttons .reset-btn {
-  background-color: #F2F3F5 !important;
-  border-color: #E5E7EB !important;
+  background-color: #f2f3f5 !important;
+  border-color: #e5e7eb !important;
   color: #717782 !important;
 }
 
-.btn-icon, .reset-btn-icon, .search-btn-icon {
+.btn-icon,
+.reset-btn-icon,
+.search-btn-icon {
   width: 14px;
   height: 14px;
   object-fit: contain;
@@ -828,7 +986,7 @@ export default {
 
 .divider-line {
   height: 1px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   margin: 7px 0 14px 0;
 }
 
@@ -845,7 +1003,7 @@ export default {
 .batch-print-btn {
   height: 32px;
   padding: 0 16px;
-  background: #13B63A;
+  background: #13b63a;
   color: white;
   border: none;
   border-radius: 2px;
@@ -877,26 +1035,26 @@ export default {
   line-height: 24px !important;
   font-size: 12px !important;
   padding: 0 12px !important;
-  background-color: #F2F3F5 !important;
-  border: 1px solid #E5E7EB !important;
+  background-color: #f2f3f5 !important;
+  border: 1px solid #e5e7eb !important;
   border-right: none !important; /* 右侧边框去掉，和按钮贴合 */
   border-radius: 2px 0 0 2px !important;
-  color: #1D2129 !important;
+  color: #1d2129 !important;
 }
 
 /* 输入框聚焦效果 */
 .custom-search-input :deep(.el-input__inner:focus) {
-  background-color: #FFFFFF !important;
-  border-color: #13B63A !important;
+  background-color: #ffffff !important;
+  border-color: #13b63a !important;
 }
 
 /* 右侧附加按钮的包裹层样式 */
 .custom-search-input :deep(.el-input-group__append) {
   padding: 0 !important;
   width: 32px !important;
-  border: 1px solid #E5E7EB !important;
+  border: 1px solid #e5e7eb !important;
   border-left: none !important;
-  background-color: #F2F3F5 !important;
+  background-color: #f2f3f5 !important;
   border-radius: 0 2px 2px 0 !important;
   overflow: hidden;
 }
@@ -914,10 +1072,6 @@ export default {
   background: transparent !important;
 }
 
-
-
-
-
 .table-container {
   width: 100%;
   margin-bottom: 20px;
@@ -934,7 +1088,7 @@ export default {
 .inventory-table thead {
   position: sticky;
   top: 0;
-  background-color: #E5E6EB;
+  background-color: #e5e6eb;
   z-index: 1;
 }
 
@@ -942,7 +1096,7 @@ export default {
 .inventory-table td {
   padding: 8px;
   text-align: left;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
   word-break: break-word;
   white-space: normal;
 }
@@ -950,15 +1104,15 @@ export default {
 .inventory-table th {
   font-weight: 500;
   color: #374151;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .inventory-table td {
-  color: #1D2129;
+  color: #1d2129;
 }
 
 .inventory-table tr:hover {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
 }
 
 .inventory-table input[type="checkbox"] {
@@ -967,7 +1121,7 @@ export default {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 2px;
   cursor: pointer;
   position: relative;
@@ -975,12 +1129,12 @@ export default {
 }
 
 .inventory-table input[type="checkbox"]:checked {
-  background: #13B63A;
-  border-color: #13B63A;
+  background: #13b63a;
+  border-color: #13b63a;
 }
 
 .inventory-table input[type="checkbox"]:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 5px;
   top: 2px;
@@ -1000,7 +1154,7 @@ export default {
 .inventory-table .operation-btn {
   padding: 4px 8px;
   font-size: 12px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 2px;
   background: white;
   cursor: pointer;
@@ -1008,22 +1162,22 @@ export default {
 }
 
 .inventory-table .operation-btn:hover {
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .inventory-table .tag-btn {
-  color: #13B63A;
-  border-color: #13B63A;
+  color: #13b63a;
+  border-color: #13b63a;
 }
 
 .inventory-table .adjust-btn {
-  color: #3B82F6;
-  border-color: #3B82F6;
+  color: #3b82f6;
+  border-color: #3b82f6;
 }
 
 .inventory-table .print-btn {
-  color: #F59E0B;
-  border-color: #F59E0B;
+  color: #f59e0b;
+  border-color: #f59e0b;
 }
 
 /* 标签打印弹窗 */
@@ -1050,7 +1204,7 @@ export default {
   border-radius: 8px;
   width: 328px;
   min-height: 242px;
-  padding:0;
+  padding: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10000;
   position: relative;
@@ -1074,7 +1228,7 @@ export default {
   margin: 0;
   font-size: 16px;
   font-weight: 500;
-  color: #1D2129;
+  color: #1d2129;
   padding-top: 25px;
 }
 
@@ -1116,7 +1270,7 @@ export default {
 
 .print-size-option label {
   font-size: 14px;
-  color: #1D2129;
+  color: #1d2129;
   cursor: pointer;
 }
 
@@ -1127,7 +1281,7 @@ export default {
 }
 
 .start-print-btn {
-  background: #13B63A;
+  background: #13b63a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -1138,7 +1292,7 @@ export default {
 }
 
 .start-print-btn:hover {
-  background: #0F9A30;
+  background: #0f9a30;
 }
 
 /* 打印加载状态 */
@@ -1155,14 +1309,14 @@ export default {
 .loading-bar {
   width: 100%;
   height: 4px;
-  background: #F2F3F5;
+  background: #f2f3f5;
   border-radius: 2px;
   overflow: hidden;
 }
 
 .loading-progress {
   height: 100%;
-  background: #13B63A;
+  background: #13b63a;
   border-radius: 2px;
   transition: width 0.2s ease;
 }
@@ -1174,8 +1328,8 @@ export default {
 
 .printing-status {
   padding: 8px 16px;
-  background: #E6F7EF;
-  color: #13B63A;
+  background: #e6f7ef;
+  color: #13b63a;
   border-radius: 4px;
   font-size: 14px;
 }
@@ -1194,7 +1348,7 @@ export default {
 .success-icon {
   width: 48px;
   height: 48px;
-  background: #13B63A;
+  background: #13b63a;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -1206,14 +1360,14 @@ export default {
 
 .success-text {
   font-size: 16px;
-  color: #1D2129;
+  color: #1d2129;
   font-weight: 500;
 }
 
 .close-success-btn {
   margin-top: 20px;
   padding: 8px 24px;
-  background: #13B63A;
+  background: #13b63a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -1223,7 +1377,7 @@ export default {
 }
 
 .close-success-btn:hover {
-  background: #0F9A30;
+  background: #0f9a30;
 }
 
 /* ✅ 优化后的表格行高计算：1表头(38px) + 6数据行(32px*6=192px) = 230px */
@@ -1269,38 +1423,38 @@ export default {
 
 /* 分页器选中项背景色 */
 .pagination .el-pagination__item--active {
-  background: #D0F0D8 !important;
-  border-color: #D0F0D8 !important;
-  color: #13B63A !important;
+  background: #d0f0d8 !important;
+  border-color: #d0f0d8 !important;
+  color: #13b63a !important;
 }
 
 /* 覆盖 Element UI 分页器选中项样式 */
 .el-pagination.is-background .el-pager li:not(.disabled).active {
-  background: #D0F0D8 !important;
-  border-color: #D0F0D8 !important;
-  color: #13B63A !important;
+  background: #d0f0d8 !important;
+  border-color: #d0f0d8 !important;
+  color: #13b63a !important;
 }
 
 /* 表格行选中背景色 */
 .nowrap-table .el-table__row.el-table__row--current {
-  background: #D0F0D8 !important;
+  background: #d0f0d8 !important;
 }
 
 /* 表格单元格选中背景色 */
 .nowrap-table .el-table__row.el-table__row--current > .el-table__cell {
-  background: #D0F0D8 !important;
-  color: #13B63A !important;
+  background: #d0f0d8 !important;
+  color: #13b63a !important;
 }
 
 /* 表格单元格内容选中颜色 */
 .nowrap-table .el-table__row.el-table__row--current > .el-table__cell .cell {
-  color: #13B63A !important;
+  color: #13b63a !important;
 }
 
 /* 确保样式优先级 */
 :root {
-  --selected-bg-color: #D0F0D8;
-  --selected-text-color: #13B63A;
+  --selected-bg-color: #d0f0d8;
+  --selected-text-color: #13b63a;
 }
 
 /* 使用CSS变量的样式 */
@@ -1331,15 +1485,15 @@ export default {
 }
 
 .operation-buttons .el-button--primary {
-  color: #409EFF !important;
+  color: #409eff !important;
 }
 
 .operation-buttons .el-button--warning {
-  color: #E6A23C !important;
+  color: #e6a23c !important;
 }
 
 .operation-buttons .el-button--success {
-  color: #67C23A !important;
+  color: #67c23a !important;
 }
 
 /* 分页 */
@@ -1364,7 +1518,7 @@ export default {
 
 .page-btn {
   padding: 4px 12px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
   background: white;
   color: #717782;
@@ -1374,22 +1528,22 @@ export default {
 }
 
 .page-btn:hover {
-  background: #F3F4F6;
-  color: #13B63A;
-  border-color: #13B63A;
+  background: #f3f4f6;
+  color: #13b63a;
+  border-color: #13b63a;
 }
 
 .page-btn.active {
-  background: #13B63A;
+  background: #13b63a;
   color: white;
-  border-color: #13B63A;
+  border-color: #13b63a;
 }
 
 .page-input {
   width: 60px;
   height: 28px;
   padding: 0 8px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
   font-size: 14px;
   text-align: center;
@@ -1397,7 +1551,7 @@ export default {
 
 .page-input:focus {
   outline: none;
-  border-color: #13B63A;
+  border-color: #13b63a;
   box-shadow: 0 0 0 2px rgba(19, 182, 58, 0.1);
 }
 
@@ -1406,16 +1560,16 @@ export default {
   .query-row {
     flex-wrap: wrap;
   }
-  
+
   .batch-search-area {
     flex-wrap: wrap;
   }
-  
+
   .search-box {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .search-input {
     flex: 1;
   }

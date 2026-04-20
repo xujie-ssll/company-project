@@ -38,7 +38,11 @@
           <el-table-column prop="csl" label="产生量" min-width="100" />
           <el-table-column prop="jldw" label="计量单位" min-width="100" />
           <el-table-column prop="szsbm" label="数字识别码" min-width="240" />
-          <template #empty>
+          <template slot="scope">
+            {{ scope.row.szsbm || '-' }}
+          </template>
+          <template slot="scope"> {{ scope.row.szsbm || '-' }}</template> 
+          <template  slot="empty"> 
             <div style="padding: 40px 0;">
               <el-empty description="请点击标签页获取数据" />
             </div>

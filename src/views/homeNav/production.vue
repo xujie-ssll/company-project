@@ -1890,27 +1890,68 @@ export default {
 /* 响应式设计 */
 @media screen and (max-width: 1200px) {
   .query-form {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 10px;
   }
-  
-  .query-buttons {
-    margin-left: 0;
-    margin-top: 10px;
+
+  .query-select,
+  .custom-date-picker {
+    width: 120px !important;
   }
-  
+
+  .query-item label {
+    font-size: 12px;
+  }
+
+  .query-buttons .el-button {
+    padding: 0 10px !important;
+    font-size: 12px;
+  }
+
+  .query-buttons .el-button i {
+    display: none;
+  }
+
   .facility-tabs {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .facility-actions {
     width: 100%;
   }
-  
+
   .search-input {
     flex: 1;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .query-form {
+    flex-wrap: nowrap !important;
+    gap: 8px;
+  }
+
+  .query-select,
+  .custom-date-picker {
+    width: 110px !important;
+  }
+
+  .query-item label {
+    font-size: 12px;
+    display: none;
+  }
+
+  .query-buttons .el-button {
+    padding: 0 8px !important;
+    font-size: 12px;
+    height: 24px !important;
+    line-height: 24px !important;
+  }
+
+  .query-buttons .el-button i {
+    display: none;
   }
 }
 </style>

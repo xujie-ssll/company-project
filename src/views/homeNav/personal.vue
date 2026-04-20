@@ -10,11 +10,11 @@
         <!-- 第二部分：用户名和工号 -->
         <div class="user-details">
           <div class="user-name">
-            <span>用户名：</span>
+            <span>用户名</span>
             <span>{{ userName }}</span>
           </div>
           <div class="user-job">
-            <span>工号：</span>
+            <span>工号</span>
             <span>{{ userCode }}</span>
           </div>
         </div>
@@ -22,7 +22,7 @@
         <!-- 第三部分：企业认证和全国系统授权信息 -->
         <div class="auth-info">
           <div class="system-authorization">
-          <span>全国系统授权信息：</span>
+          <span>全国系统授权信息</span>
           <span class="fill-status">
             {{ authorizationInfo || '未填写' }}
           </span>
@@ -74,6 +74,7 @@
                   v-model="certifyForm.companyName"
                   placeholder="请输入企业名称"
                   class="certify-dialog-input"
+                  :disabled="isCertifyDetailMode"
                 />
               </div>
               <div class="certify-form-item">
@@ -83,6 +84,7 @@
                   v-model="certifyForm.socialCreditCode"
                   placeholder="请输入统一社会信用代码"
                   class="certify-dialog-input"
+                  :disabled="isCertifyDetailMode"
                 />
               </div>
               <div class="certify-form-item">
@@ -92,10 +94,11 @@
                   v-model="certifyForm.legalRepresentative"
                   placeholder="请输入法定代表人"
                   class="certify-dialog-input"
+                  :disabled="isCertifyDetailMode"
                 />
               </div>
             </div>
-            <div class="certify-dialog-footer">
+            <div v-if="!isCertifyDetailMode" class="certify-dialog-footer">
               <button class="certify-dialog-confirm" @click="handleCertifyConfirm">确定</button>
             </div>
           </div>
@@ -215,7 +218,7 @@
                 <label>统一设备编号</label>
                 <input 
                   type="text" 
-                  v-model="newIotDevice.code"
+                  v-model="newIotDevice.facilityNo"
                   placeholder="请输入"
                   class="add-iot-input"
                 />
@@ -294,15 +297,13 @@
                 </div>
                 <div class="form-item">
                   <label>统一设备编号</label>
-                  <select 
-                    v-model="editItem.code"
+                  <input 
+                    type="text" 
+                    v-model="editItem.facilityNo"
+                    placeholder="请输入"
                     class="edit-input"
-                  >
-                    <option value="">请选择</option>
-                    <option v-for="type in iotDeviceTypes" :key="type" :value="type">
-                      {{ type }}
-                    </option>
-                  </select>
+                    disabled
+                  />
                 </div>
                 <div class="form-item">
                   <label>状态</label>
@@ -325,10 +326,8 @@
           <div class="user-company">
             <span>企业认证：</span>
             <span v-if="isCertified" class="company-name">{{ companyName }}</span>
-            <span :class="isCertified ? 'verified' : 'not-verified'">
-              {{ isCertified ? '已认证' : '未认证' }}
-            </span>
-            <button v-if="!isCertified" class="auth-btn" @click="handleCertifyEdit">
+            <span v-if="isCertified" class="verified">已认证</span>
+            <button v-else class="auth-btn" @click="handleCertifyEdit">
               认证
             </button>
           </div>
@@ -346,27 +345,35 @@
           <div class="tab-item" :class="{ active: currentTab === 'iot' }" @click="handleTabClick('iot')">物联网设备管理</div>
         </div>
         
-        <!-- 分隔线 -->
-        <div class="divider"></div>
-        
         <!-- 标签页内容 -->
         <div class="tab-content">
         <!-- 基本信息 -->
-        <div v-if="currentTab === 'basic'">
-          <div class="info-item">
-            <label>登录密码：</label>
-            <span>{{ loginPassword ? '已设置，密码至少6位字符，支持数字、字母和除空格外的特殊字符，且必须同时包含数字和大小写字母。' : '未设置' }}</span>
-            <button class="modify-btn" @click="handleModifyClick('password')">修改</button>
+        <div v-if="currentTab === 'basic'" class="basic-info-container">
+          <div class="info-item-line">
+            <div class="info-item-row">
+              <span class="info-label">登录密码</span>
+              <div class="info-value-wrapper">
+                <span class="info-value">{{ loginPassword ? '已设置，密码至少6位字符，支持数字、字母和除空格外的特殊字符，且必须同时包含数字和大小写字母。' : '未设置' }}</span>
+                <span class="info-underline"></span>
+              </div>
+              <button class="modify-btn" @click="handleModifyClick('password')">修改</button>
+            </div>
           </div>
-          <div class="info-item">
-            <label>注册手机：</label>
-            <span>{{ registeredPhone ? registeredPhone : '191****9640' }}</span>
-            <button class="modify-btn" @click="handleModifyClick('phone')">修改</button>
+          <div class="info-item-line">
+            <div class="info-item-row">
+              <span class="info-label">注册手机</span>
+              <div class="info-value-wrapper">
+                <span class="info-value">{{ registeredPhone ? registeredPhone : '191****9640' }}</span>
+                <span class="info-underline"></span>
+              </div>
+              <button class="modify-btn" @click="handleModifyClick('phone')">修改</button>
+            </div>
           </div>
         </div>
         
         <!-- 单位信息 -->
         <div v-else-if="currentTab === 'unit'">
+          <div class="divider unit-divider"></div>
           <h3 class="section-title">主体信息</h3>
           <div class="info-columns">
             <!-- 左列 -->
@@ -381,7 +388,7 @@
               </div>
               <div class="info-item">
                 <label>经营状态：</label>
-                <span><span class="status-enabled">{{ businessStatus || '启用' }}</span></span>
+                <span><span :class="enabled === 0 ? 'status-enabled' : 'status-disabled'">{{ enabled === 0 ? '启用' : '禁用' }}</span></span>
               </div>
               <div class="info-item">
                 <label>所属行业：</label>
@@ -420,6 +427,7 @@
         
         <!-- 业务信息 -->
         <div v-else-if="currentTab === 'business'">
+          <div class="divider business-divider"></div>
           <!-- 危废信息查询导航栏 -->
           <div class="business-nav">
             <div 
@@ -735,7 +743,7 @@
                     <td>{{ item.zxlyczsstybh }}</td>
                     <td>{{ item.ssmc }}</td>
                     <td>{{ item.ssbm }}</td>
-                    <td><span :class="['status-dot', item.sszt === 1 ? 'enabled' : 'disabled']"></span>{{ item.sszt === 1 ? '启用' : '禁用' }}</td>
+                    <td><span :class="['status-dot', item.sszt === 0 ? 'enabled' : 'disabled']"></span>{{ item.sszt === 0 ? '启用' : '禁用' }}</td>
                     <td>{{ item.lyczfsValue }}</td>
                   </tr>
                 </tbody>
@@ -862,6 +870,7 @@ export default {
       companyName: '',
       isCertified: false,
       showCertifyDialog: false,
+      isCertifyDetailMode: false,
       certifyForm: {
         companyName: '',
         socialCreditCode: '',
@@ -883,7 +892,6 @@ export default {
       avatar: '',
       
       // 单位信息
-      companyName: '',
       legalRepresentative: '',
       businessStatus: '',
       industry: '',
@@ -893,6 +901,7 @@ export default {
       administrativeDivision: '',
       companyContact: '',
       companyPhone: '',
+      enabled: '',
       
       // 列表数据
       agentData: [], // 经办人列表
@@ -920,7 +929,7 @@ export default {
       pendingDeleteId: null, 
       
       showAddIotDialog: false,
-      newIotDevice: { code: '', type: '', enabled: false },
+      newIotDevice: { facilityNo: '', type: '', enabled: false },
       iotDeviceTypes: ['扫码设备', '智能终端', '智能称重设备', '智能标识设备'],
       
       showEditDialog: false,
@@ -1009,12 +1018,39 @@ export default {
     },
     // === 分页补充方法 结束 ===
 
-    // 初始化页面数据（先同步单位 officeId，再查 tokenPage，避免 id 条件错误导致一直「未填写」）
+    // 初始化页面数据（从 Token 中获取 officeId，再查 tokenPage，避免 id 条件错误导致一直「未填写」）
     async initData() {
       this.loadUserProfile()
-      await this.getOfficeStatus()
+      this.extractOfficeIdFromToken()
       await this.getAuthTokenStatus()
-      this.refreshList()
+      // 企业认证在进入个人中心页面时调用officeData API
+      if (this.officeId) {
+        myApi.officeData(this.officeId).then(res => {
+          // 检查响应是否成功
+          if (res.success === false) {
+            console.error('获取企业详情失败', res)
+            return
+          }
+          
+          const data = res.result || res.data
+          if (data) {
+            this.companyName = data.name || this.companyName
+            this.businessLicense = data.code || ''
+            this.legalRepresentative = data.fddbr || ''
+            this.address = data.address || data.gszcdxxdz || ''
+            this.unifiedSocialCreditCode = data.code || ''
+            this.registeredAddress = data.address || data.gszcdxxdz || ''
+            this.administrativeDivision = data.xzqh || data.gszcdxzqh || ''
+            this.industry = data.hylbdm || ''
+            this.companyContact = data.lxr || ''
+            this.companyPhone = data.lxrsj || data.fddbrlxdh || ''
+            this.enabled = data.enabled || ''
+            this.isCertified = true
+          }
+        }).catch((err) => {
+          console.error('获取企业详情失败', err)
+        })
+      }
     },
 
     loadUserProfile() {
@@ -1227,56 +1263,7 @@ export default {
       }).catch(err => console.error('获取授权信息失败', err))
     },
 
-    // 2. 获取企业认证状态
-    getOfficeStatus() {
-      return myApi.syncData().then(res => {
-        // 检查响应是否成功
-        if (res.success === false || res.code === '0002') {
-          console.error('同步单位信息失败', res)
-          Message.error(res.message || '同步信息失败，请重试')
-          return
-        }
-        
-        const data = res.data || res.result
-        if (data) {
-          const newOfficeId = data.officeId || data.id || data.office?.id || data.office?.officeId
-          if (newOfficeId) {
-            this.officeId = String(newOfficeId)
-          }
-          this.companyName = data.name || this.companyName
-          this.isCertified = !!this.companyName
-          
-          if (this.officeId) {
-            myApi.officeData(this.officeId).then(res => {
-              // 检查响应是否成功
-              if (res.success === false) {
-                console.error('获取企业详情失败', res)
-                Message.error(res.message || '获取企业详情失败，请重试')
-                return
-              }
-              
-              const data = res.result || res.data
-              if (data) {
-                this.companyName = data.name || this.companyName
-                this.unifiedSocialCreditCode = data.code || ''
-                this.registeredAddress = data.address || data.gszcdxxdz || ''
-                this.administrativeDivision = data.xzqh || data.gszcdxzqh || ''
-                this.legalRepresentative = data.fddbr || ''
-                this.industry = data.hylbdm || ''
-                this.companyContact = data.lxr || ''
-                this.companyPhone = data.lxrsj || data.fddbrlxdh || ''
-              }
-            }).catch((err) => {
-              console.error('获取企业详情失败', err)
-              Message.error('获取企业详情失败，请重试')
-            })
-          }
-        }
-      }).catch((err) => {
-        console.error('同步单位信息失败', err)
-        Message.error('同步信息失败，请重试')
-      })
-    },
+
 
     parseJwtPayload(token) {
       try {
@@ -1291,6 +1278,15 @@ export default {
         return JSON.parse(json)
       } catch (e) {
         return {}
+      }
+    },
+
+    // 从 Token 中提取 officeId
+    extractOfficeIdFromToken() {
+      const token = StorageUtil.getItemSync('token') || window.tokenCache || ''
+      const jwt = this.parseJwtPayload(token)
+      if (jwt?.officeId) {
+        this.officeId = String(jwt.officeId)
       }
     },
 
@@ -1413,7 +1409,7 @@ export default {
 
       if (!officeId) {
         try {
-          await this.getOfficeStatus()
+          this.extractOfficeIdFromToken()
           officeId = String(officeId || this.officeId || '')
         } catch (e) {}
       }
@@ -1489,14 +1485,14 @@ export default {
 
     // 7. 物联网设备管理
     handleAddIotSave() {
-      if (!this.newIotDevice.code || !this.newIotDevice.type) return Message.warning('请填写完整')
+      if (!this.newIotDevice.facilityNo || !this.newIotDevice.type) return Message.warning('请填写完整')
           if (this.isSubmitting) return;
 
       this.isSubmitting = true;
       myApi.addequipment(this.newIotDevice).then(() => {
         Message.success('添加成功')
         this.showAddIotDialog = false
-        this.newIotDevice = { code: '', type: '', enabled: false } // 提交成功后清空表单
+        this.newIotDevice = { facilityNo: '', type: '', enabled: false } // 提交成功后清空表单
         this.refreshList()
       }).finally(() => {
         this.isSubmitting = false;
@@ -1529,7 +1525,40 @@ export default {
       try {
         this.currentTab = tab
         this.currentPage = 1
-        this.refreshList()
+        
+        if (tab === 'unit' && this.officeId) {
+          // 点击单位信息标签页时，调用单位信息接口获取数据
+          myApi.officeData(this.officeId).then(res => {
+            // 检查响应是否成功
+            if (res.success === false) {
+              console.error('获取企业详情失败', res)
+              Message.error(res.message || '获取企业详情失败，请重试')
+              return
+            }
+            
+            const data = res.result || res.data
+            if (data) {
+              this.companyName = data.name || this.companyName
+              this.businessLicense = data.code || ''
+              this.legalRepresentative = data.fddbr || ''
+              this.address = data.address || data.gszcdxxdz || ''
+              this.unifiedSocialCreditCode = data.code || ''
+              this.registeredAddress = data.address || data.gszcdxxdz || ''
+              this.administrativeDivision = data.xzqh || data.gszcdxzqh || ''
+              this.industry = data.hylbdm || ''
+              this.companyContact = data.lxr || ''
+              this.companyPhone = data.lxrsj || data.fddbrlxdh || ''
+              this.enabled = data.enabled || ''
+              this.isCertified = true
+            }
+          }).catch((err) => {
+            console.error('获取企业详情失败', err)
+            Message.error('获取企业详情失败，请重试')
+          })
+        } else if (tab !== 'basic' && tab !== 'unit') {
+          // 其他标签页调用 refreshList 获取数据
+          this.refreshList()
+        }
       } catch (error) {
         console.error('[DEBUG] handleTabClick: 错误:', error)
       }
@@ -1581,12 +1610,27 @@ export default {
 
     // 企业认证
     handleCertifyEdit() {
+      this.isCertifyDetailMode = false;
+      this.showCertifyDialog = true;
+    },
+    handleCertifyDetail() {
+      // 填充单位信息到认证表单
+      this.certifyForm = {
+        companyName: this.companyName || '',
+        socialCreditCode: this.businessLicense || '',
+        legalRepresentative: this.legalRepresentative || ''
+      };
+      this.isCertifyDetailMode = true;
       this.showCertifyDialog = true;
     },
     handleCertifyConfirm() {
       // TODO: 在这里接入提交企业认证接口
       this.$message.success('认证信息已提交');
       this.showCertifyDialog = false;
+    },
+    handleCertifyCancel() {
+      this.showCertifyDialog = false;
+      this.isCertifyDetailMode = false;
     },
 
     // 修改密码 / 手机号
@@ -1637,8 +1681,7 @@ export default {
     },
     // 其余 Dialog 取消方法...
     handleAuthCancel() { this.showAuthDialog = false },
-    handleCertifyCancel() { this.showCertifyDialog = false },
-    handleAddAgentClick() { this.showAddAgentDialog = true },
+  handleAddAgentClick() { this.showAddAgentDialog = true },
     handleAddAgentCancel() { this.showAddAgentDialog = false },
     handleAddIotClick() { this.showAddIotDialog = true },
     handleAddIotCancel() { this.showAddIotDialog = false }
@@ -1753,24 +1796,27 @@ export default {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  gap: 0;
 }
 
 .user-company span:first-child {
   color: #717782;
   font-size: 14px;
   min-width: 80px;
-  margin-right: 12px;
+  margin-right: 0;
 }
 
 .user-company .company-name {
-  margin-right: 16px;
+  margin-right: 0;
 }
 
 .company-name {
   color: #1D2129;
   font-size: 14px;
   font-weight: 500;
+  letter-spacing: 0.1em;
   word-break: break-word;
+  margin-right: 0.2em;
 }
 
 .verified {
@@ -1894,6 +1940,7 @@ export default {
   position: relative;
   flex: 1;
   min-height: 0;
+  margin-bottom: 10px;
 }
 
 .tab-navigation {
@@ -1915,6 +1962,16 @@ export default {
   border-top: 1px solid #E5E7EB;
   margin-bottom: 5px;
   opacity: 1;
+}
+
+.unit-divider {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.business-divider {
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .tab-content {
@@ -1957,27 +2014,43 @@ export default {
   overflow: visible;
 }
 
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.info-item-line {
   margin-bottom: 20px;
-  flex-wrap: wrap;
+  position: relative;
 }
 
-.info-item label {
-  color: #717782;
-  font-size: 14px;
-  min-width: 120px;
-  flex-shrink: 0;
+.info-item-row {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
 }
 
-.info-item span {
+.info-value-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.info-value {
   color: #1D2129;
   font-size: 14px;
-  flex: 1;
-  min-width: 0;
   word-break: break-word;
+}
+
+.info-underline {
+  position: absolute;
+  bottom: -8px;
+  left: 76px;
+  right: 50px;
+  height: 1px;
+  background-color: #E5E6EB;
+}
+
+.info-item-row .info-label {
+  color: #717782;
+  font-size: 14px;
+  flex-shrink: 0;
+  min-width: 56px;
 }
 
 .modify-btn {
@@ -2011,6 +2084,13 @@ export default {
   font-weight: 500;
   background-color:#E8FFEA;
   border: 1px solid #13b6394b;
+}
+
+.status-disabled {
+  color: #F53F3F !important;
+  font-weight: 500;
+  background-color: #FFECE8;
+  border: 1px solid #f53f3f4b;
 }
 
 .info-columns {
@@ -2201,6 +2281,43 @@ export default {
   outline: none;
   border-color: #13B63A;
   box-shadow: 0 0 0 2px rgba(19, 182, 58, 0.1);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.info-item label {
+  font-family: 'Microsoft YaHei';
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: 0%;
+  color: #717782;
+  min-width: 120px;
+  margin-right: 12px;
+}
+
+.info-item span {
+  font-family: 'Microsoft YaHei';
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: 0%;
+  color:              #1E253D;
+}
+
+/* 基本信息页面间距调整 */
+.basic-info-container {
+  margin-top: 2.875rem; /* 46px */
+}
+
+.basic-info-container .info-item-line {
+  margin-bottom: 2.875rem; /* 46px */
 }
 
 /* 响应式调整 */
@@ -2764,6 +2881,7 @@ export default {
   color: #1D2129;
   box-sizing: border-box;
   transition: all 0.2s;
+  background-color: #F2F3F5;
 }
 
 .add-agent-input:focus,
@@ -3112,6 +3230,7 @@ input:checked + .switch-slider:before {
   color: #1D2129;
   box-sizing: border-box;
   transition: all 0.2s;
+  background-color: #F2F3F5;
 }
 
 .add-iot-input:focus {
@@ -3221,6 +3340,7 @@ input:checked + .switch-slider:before {
   color: #1D2129;
   box-sizing: border-box;
   transition: all 0.2s;
+  background-color: #F2F3F5;
 }
 
 .edit-input:focus {
